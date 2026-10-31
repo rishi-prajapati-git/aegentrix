@@ -6,6 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-green.svg)](https://fastapi.tiangolo.com/)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)]()
+[![Implementation Progress](https://img.shields.io/badge/Roadmap-TODO.md-orange.svg)](TODO.md)
 
 AEGENTRIX is a security and governance layer for multi-agent AI workflows. As AI systems evolve from isolated chatbots to multi-agent networks (where Research Agents, Finance Agents, and Communication Agents collaborate), traditional access controls are insufficient. Agents can exchange misleading instructions, fabricate approvals, reuse compromised context, and exfiltrate sensitive data.
 
@@ -112,7 +113,7 @@ pytest
 python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
-Verify backend health at: `http://localhost:8000/health`  
+Verify backend health at: `http://localhost:8000/health`
 Interactive Swagger docs: `http://localhost:8000/docs`
 
 ### 2. Frontend Setup
@@ -132,6 +133,7 @@ Dashboard will be accessible at: `http://localhost:3000`
 To maximize execution speed and ensure comprehensive coverage of hackathon evaluation criteria, the project responsibilities are divided among 3 distinct roles:
 
 ### 👤 Member 1: AI Security Architect & Policy Engine Lead
+
 - **Primary Focus:** Security Boundaries, Policy Enforcement, Threat Modeling & Rule Engine.
 - **Key Responsibilities:**
   1. **Policy Rules & Invariant Enforcement:** Expand granular access policies (`backend/app/services/policy_engine.py`) covering fine-grained resource and action scopes.
@@ -142,6 +144,7 @@ To maximize execution speed and ensure comprehensive coverage of hackathon evalu
 ---
 
 ### 👤 Member 2: Backend Orchestrator & Systems Engineer
+
 - **Primary Focus:** FastAPI Core, Agent Workflows, API Surface & Data Persistence.
 - **Key Responsibilities:**
   1. **Agent Coordination & Gateway:** Refine the inter-agent gateway (`backend/app/services/gateway.py`) to simulate authentic multi-agent communication rounds.
@@ -152,6 +155,7 @@ To maximize execution speed and ensure comprehensive coverage of hackathon evalu
 ---
 
 ### 👤 Member 3: Frontend Lead & SOC Dashboard Engineer
+
 - **Primary Focus:** User Interface, Visual Exploit Timeline, Real-time SOC Dashboard & Demo.
 - **Key Responsibilities:**
   1. **Next.js SOC Dashboard:** Build the web dashboard (`frontend/`) visualizing the Agent Registry, Active Policies, and System Metrics.
@@ -164,17 +168,19 @@ To maximize execution speed and ensure comprehensive coverage of hackathon evalu
 
 ## 🧪 Scenarios Covered
 
-| Scenario ID | Name | Category | Expected Outcome |
-|-------------|------|----------|------------------|
-| `scenario-1` | Legitimate Research Workflow | BENIGN | **ALLOW** (Access authorized under least privilege) |
-| `scenario-2` | Prompt Injection in Document | ADVERSARIAL | **DENY** (Advisory flags injection; policy blocks read) |
-| `scenario-3` | Fabricated Approval Claim | ADVERSARIAL | **DENY** (Verbal claims rejected; token required) |
-| `scenario-4` | Unauthorized Cross-Agent Read | ADVERSARIAL | **DENY** (Least-privilege boundary enforced) |
-| `scenario-5` | Unauthorized External Transfer | ADVERSARIAL | **DENY** (Read authorized, but external transfer blocked) |
-| `scenario-6` | Multi-Step Exfiltration Chain | ADVERSARIAL | **INCIDENT TRIGGERED** (Temporal analyzer correlates steps) |
-| `scenario-7` | AI Model Unavailable | SYSTEM | **FAIL-SAFE ACTIVE** (Deterministic policies remain 100% active) |
+
+| Scenario ID  | Name                           | Category    | Expected Outcome                                                 |
+| -------------- | -------------------------------- | ------------- | ------------------------------------------------------------------ |
+| `scenario-1` | Legitimate Research Workflow   | BENIGN      | **ALLOW** (Access authorized under least privilege)              |
+| `scenario-2` | Prompt Injection in Document   | ADVERSARIAL | **DENY** (Advisory flags injection; policy blocks read)          |
+| `scenario-3` | Fabricated Approval Claim      | ADVERSARIAL | **DENY** (Verbal claims rejected; token required)                |
+| `scenario-4` | Unauthorized Cross-Agent Read  | ADVERSARIAL | **DENY** (Least-privilege boundary enforced)                     |
+| `scenario-5` | Unauthorized External Transfer | ADVERSARIAL | **DENY** (Read authorized, but external transfer blocked)        |
+| `scenario-6` | Multi-Step Exfiltration Chain  | ADVERSARIAL | **INCIDENT TRIGGERED** (Temporal analyzer correlates steps)      |
+| `scenario-7` | AI Model Unavailable           | SYSTEM      | **FAIL-SAFE ACTIVE** (Deterministic policies remain 100% active) |
 
 ---
 
 ## 📜 License
+
 Licensed under the [Apache License, Version 2.0](LICENSE).
