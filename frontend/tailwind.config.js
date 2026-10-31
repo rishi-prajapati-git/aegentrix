@@ -7,34 +7,41 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        chassis: {
-          DEFAULT: "var(--dp-color-chassis)",
-          raised: "var(--dp-color-raised)",
-          well: "var(--dp-color-well)",
-          ink: "var(--dp-color-ink)",
-          label: "var(--dp-color-label)",
-          field: "var(--dp-color-field)",
-          onField: "var(--dp-color-on-field)",
-          onFieldMuted: "var(--dp-color-on-field-muted)",
+        ground: "var(--dp-color-ground)",
+        ink: {
+          DEFAULT: "var(--dp-color-ink)",
+          secondary: "var(--dp-color-ink-secondary)",
+        },
+        clay: {
           accent: "var(--dp-color-accent)",
+          mint: "var(--dp-color-surface-support)",
+          lavender: "var(--dp-color-surface-compare)",
+          warm: "var(--dp-color-surface-warm)",
+          cool: "var(--dp-color-surface-cool)",
+          surface: "var(--dp-color-surface)",
         },
       },
       fontFamily: {
-        sans: ["var(--dp-typography-sans)"],
-        mono: ["var(--dp-typography-mono)"],
-      },
-      boxShadow: {
-        chassis: "0 20px 40px -15px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.7)",
-        key: "inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 0 #959fa4, 0 3px 5px rgba(0,0,0,0.2)",
-        "key-hover": "inset 0 1px 0 rgba(255,255,255,0.95), 0 3px 0 #8b959a, 0 5px 8px rgba(0,0,0,0.22)",
-        "key-pressed": "inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.6)",
-        well: "inset 0 2px 4px rgba(0,0,0,0.25), inset 0 0 2px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.8)",
-        screen: "inset 0 3px 6px rgba(0,0,0,0.5), inset 0 0 1px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4)",
-        dial: "inset 0 2px 0 rgba(255,255,255,0.9), 0 4px 8px rgba(0,0,0,0.3), 0 1px 0 #828c91",
-        "dial-pressed": "inset 0 3px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.5)",
+        sans: ["var(--dp-typography-face)", "sans-serif"],
+        mono: ["var(--dp-typography-mono)", "monospace"],
       },
       borderRadius: {
-        key: "var(--dp-radius-key)",
+        surface: "var(--dp-radius-surface)",
+        tray: "var(--dp-radius-tray)",
+        control: "var(--dp-radius-control)",
+        disclosure: "var(--dp-radius-disclosure)",
+      },
+      boxShadow: {
+        clay: "0 16px 32px -8px rgba(56, 49, 57, 0.12), inset 3px 3px 6px rgba(255, 255, 255, 0.75), inset -3px -3px 7px rgba(56, 49, 57, 0.12)",
+        "clay-tray": "0 20px 40px -12px rgba(56, 49, 57, 0.10), inset 4px 4px 8px rgba(255, 255, 255, 0.9), inset -4px -4px 8px rgba(56, 49, 57, 0.08)",
+        "clay-btn": "inset 2px 2px 4px rgba(255, 255, 255, 0.8), inset -2px -2px 4px rgba(56, 49, 57, 0.15), 0 6px 14px -3px rgba(56, 49, 57, 0.16)",
+        "clay-btn-hover": "inset 2px 2px 4px rgba(255, 255, 255, 0.9), inset -2px -2px 4px rgba(56, 49, 57, 0.15), 0 10px 18px -3px rgba(56, 49, 57, 0.20)",
+        "clay-btn-pressed": "inset 2px 2px 5px rgba(56, 49, 57, 0.22), inset -1px -1px 3px rgba(255, 255, 255, 0.5), 0 2px 4px rgba(56, 49, 57, 0.12)",
+        "clay-recessed": "inset 3px 3px 6px rgba(56, 49, 57, 0.14), inset -2px -2px 5px rgba(255, 255, 255, 0.7)",
+        "clay-disclosure": "0 8px 18px -4px rgba(56, 49, 57, 0.08), inset 2px 2px 5px rgba(255, 255, 255, 0.85), inset -2px -2px 5px rgba(56, 49, 57, 0.08)",
+      },
+      transitionDuration: {
+        interaction: "var(--dp-motion-interaction)",
       },
     },
   },

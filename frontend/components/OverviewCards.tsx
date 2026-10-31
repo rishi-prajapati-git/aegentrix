@@ -12,111 +12,110 @@ interface OverviewCardsProps {
 export const OverviewCards: React.FC<OverviewCardsProps> = ({ metrics, onNavigateTab }) => {
   if (!metrics) {
     return (
-      <div className="bg-[#b6bec2] p-2.5 rounded-xl shadow-well border border-[#a2abb0] border-b-white/80">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 animate-pulse">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-24 bg-[#20272b] rounded"></div>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="clay-cushion-cream h-32 animate-pulse rounded-[38px]"></div>
+        ))}
       </div>
     );
   }
 
   const cards = [
     {
-      bay: "TELEMETRY 01",
+      cushionClass: "clay-cushion-mint",
+      num: "01",
       title: "OPERATIONS GATED",
       value: metrics.total_events,
       icon: Shield,
-      lamp: "lamp-green",
-      valueColor: "text-[#f2f4f4]",
+      dotColor: "recessed-dot-active",
       tab: "timeline",
       sublabel: "Total PEP Gated Calls",
     },
     {
-      bay: "TELEMETRY 02",
+      cushionClass: "clay-cushion-cool",
+      num: "02",
       title: "AUTHORIZED [ALLOW]",
       value: metrics.allowed_count,
       icon: CheckCircle2,
-      lamp: "lamp-green",
-      valueColor: "text-[#4ade80]",
+      dotColor: "recessed-dot-green",
       tab: "timeline",
       sublabel: "Policy Matched",
     },
     {
-      bay: "TELEMETRY 03",
+      cushionClass: "clay-cushion-pink",
+      num: "03",
       title: "INTERCEPTED [DENY]",
       value: metrics.denied_count,
       icon: Ban,
-      lamp: metrics.denied_count > 0 ? "lamp-orange" : "lamp-off",
-      valueColor: "text-[#f87171]",
+      dotColor: metrics.denied_count > 0 ? "recessed-dot-orange" : "recessed-dot-inactive",
       tab: "timeline",
       sublabel: "Zero-Bypass Intercept",
     },
     {
-      bay: "TELEMETRY 04",
+      cushionClass: "clay-cushion-warm",
+      num: "04",
       title: "ADVISORY AI SIGNALS",
       value: metrics.flagged_signals_count,
       icon: Radio,
-      lamp: metrics.flagged_signals_count > 0 ? "lamp-orange" : "lamp-off",
-      valueColor: "text-[#fbbf24]",
+      dotColor: metrics.flagged_signals_count > 0 ? "recessed-dot-orange" : "recessed-dot-inactive",
       tab: "timeline",
-      sublabel: "Heuristic / Gemma Flag",
+      sublabel: "Heuristic & Gemma Flags",
     },
     {
-      bay: "TELEMETRY 05",
+      cushionClass: "clay-cushion-lavender",
+      num: "05",
       title: "CORRELATED INCIDENTS",
       value: metrics.open_incidents_count,
       icon: ShieldAlert,
-      lamp: metrics.open_incidents_count > 0 ? "lamp-orange" : "lamp-off",
-      valueColor: metrics.open_incidents_count > 0 ? "text-[#f15b22]" : "text-[#d8dee1]",
+      dotColor: metrics.open_incidents_count > 0 ? "recessed-dot-orange" : "recessed-dot-green",
       tab: "incidents",
       sublabel: "Active Attack Chains",
     },
   ];
 
   return (
-    <div className="bg-[#b6bec2] p-2.5 rounded-xl shadow-well border border-[#a2abb0] border-b-white/80">
-      <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-[#a4adb2]">
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-3 px-2">
         <div className="flex items-center space-x-2">
-          <span className="chassis-screw"></span>
-          <span className="engraved-label text-[10px] text-[#2c353b]">
-            SYSTEM TELEMETRY DECK // FACTUAL REGISTRY STATE
+          <span className="recessed-dot recessed-dot-active"></span>
+          <span className="text-xs font-bold uppercase tracking-wider text-[#383139]">
+            System Telemetry Deck // Real-Time State
           </span>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="engraved-label text-[9px] text-[#414b52]">REAL-TIME REFRESH: ACTIVE</span>
-          <span className="chassis-screw"></span>
-        </div>
+        <span className="text-[12px] font-medium text-[#48404b]">
+          Real-time Refresh: Active
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <button
               key={idx}
               onClick={() => onNavigateTab(card.tab)}
-              className="text-left recessed-screen p-3.5 hover:border-[#525f67] transition-all group relative focus:outline-none focus:ring-2 focus:ring-[#f15b22]"
+              className={`${card.cushionClass} p-5 text-left transition-transform duration-interaction hover:-translate-y-1.5 focus:outline-none focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[#383139] focus-visible:outline-offset-2 group relative`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[#8b98a0] tracking-wider font-semibold">
-                  {card.bay}
+                <span className="text-[11px] font-mono font-bold text-[#48404b]">
+                  [{card.num}]
                 </span>
-                <span className={card.lamp} aria-hidden="true"></span>
+                <span className={`recessed-dot ${card.dotColor}`} aria-hidden="true"></span>
               </div>
 
-              <div className="mt-2">
-                <div className="text-[11px] font-mono text-[#d8dee1] font-medium leading-tight">
+              <div className="mt-3">
+                <div className="text-[11px] font-bold tracking-tight text-[#48404b] uppercase">
                   {card.title}
                 </div>
                 <div className="mt-1 flex items-baseline justify-between">
-                  <span className={`text-2xl font-bold font-mono tracking-tight ${card.valueColor}`}>
+                  <span className="text-3xl font-extrabold tracking-tight text-[#383139] font-mono">
                     {card.value.toString().padStart(3, "0")}
                   </span>
-                  <Icon className="w-4 h-4 text-[#5e6c75] group-hover:text-[#a0aeb7] transition-colors" />
+                  <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8),inset_-1px_-1px_2px_rgba(56,49,57,0.1)] group-hover:scale-110 transition-transform">
+                    <Icon className="w-4 h-4 text-[#383139]" />
+                  </div>
                 </div>
-                <div className="text-[10px] font-mono text-[#828f96] mt-1 truncate">
+                <div className="text-[12px] font-medium text-[#48404b]/90 mt-1 truncate">
                   {card.sublabel}
                 </div>
               </div>

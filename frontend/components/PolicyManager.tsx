@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { PolicyRule, createApproval } from "../lib/api";
-import { Lock, Key, Plus, Check } from "lucide-react";
+import { Lock, Key, Plus, Check, Shield } from "lucide-react";
 
 interface PolicyManagerProps {
   policies: PolicyRule[];
@@ -43,89 +43,92 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({ policies, onApprov
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#cbd0d2] border-2 border-[#b0b8bc] rounded-xl p-5 shadow-chassis relative">
-        <span className="chassis-screw absolute top-3 left-3"></span>
-        <span className="chassis-screw absolute top-3 right-3"></span>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-3">
+        <div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#48404b]">
+              Bay 06 // Policy Vault & Approvals
+            </span>
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#ded0f9] text-[#383139]">
+              DETERMINISTIC RULES
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold text-[#383139] mt-0.5">
+            Security Policy Rules & Tokens
+          </h2>
+          <p className="text-xs sm:text-sm text-[#48404b] mt-0.5">
+            Deterministic security rules and cryptographic HMAC approval token generation.
+          </p>
+        </div>
 
-        {/* Panel Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#a4adb2] px-2 gap-3">
-          <div className="flex items-center space-x-3">
-            <div className="vent-assembly">
-              <span className="vent-slot"></span>
-              <span className="vent-slot"></span>
-              <span className="vent-slot"></span>
+        <button
+          onClick={() => setShowModal(true)}
+          className="clay-btn clay-btn-primary px-5 py-2.5 text-xs font-bold flex items-center space-x-2 self-start sm:self-center"
+        >
+          <Key className="w-4 h-4 text-[#f6a3ca]" />
+          <span>Issue Signed Approval</span>
+        </button>
+      </div>
+
+      {/* Policy Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {policies.map((pol) => (
+          <div
+            key={pol.policy_id}
+            className="p-6 rounded-[32px] bg-[#fffdf7] shadow-[0_12px_24px_-6px_rgba(56,49,57,0.08),inset_3px_3px_6px_rgba(255,255,255,0.95),inset_-3px_-3px_6px_rgba(56,49,57,0.07)] space-y-3"
+          >
+            <div className="flex items-center justify-between border-b border-[#383139]/10 pb-2">
+              <span className="font-mono font-bold text-xs text-[#383139]">
+                {pol.policy_id}
+              </span>
+              <span
+                className={`text-xs font-bold px-3 py-0.5 rounded-full uppercase tracking-wider ${
+                  pol.decision === "ALLOW"
+                    ? "bg-[#c0efdc] text-[#245842]"
+                    : "bg-[#f9e7a8] text-[#6b5816]"
+                }`}
+              >
+                {pol.decision}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="engraved-label text-xs font-bold text-[#181e22]">BAY 06 // POLICY VAULT & APPROVALS</span>
-                <span className="text-[10px] font-mono text-[#58656d]">DETERMINISTIC RULES</span>
-              </div>
-              <p className="text-xs text-[#414b52] mt-0.5 font-sans">
-                Deterministic security rules and cryptographic HMAC approval token generation.
-              </p>
+
+            <h3 className="font-bold text-base text-[#383139]">
+              {pol.name}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#48404b] leading-relaxed">
+              {pol.description}
+            </p>
+
+            <div className="pt-2 border-t border-[#383139]/10 text-xs text-[#48404b] space-y-1 font-mono">
+              <div>Source: <span className="font-bold text-[#383139]">{pol.source_pattern}</span></div>
+              <div>Operation: <span className="font-bold text-[#383139]">{pol.operation}</span></div>
+              <div>Resource Scope: <span className="font-bold text-[#383139]">{pol.resource_pattern}</span></div>
+              {pol.destination_pattern && (
+                <div>Destination: <span className="font-bold text-[#383139]">{pol.destination_pattern}</span></div>
+              )}
+              {pol.requires_verifiable_approval && (
+                <div className="mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#f6a3ca]/30 text-[#78234e] text-xs font-bold">
+                  <span className="recessed-dot recessed-dot-orange"></span>
+                  <span>Requires HMAC Verifiable Approval Token</span>
+                </div>
+              )}
             </div>
           </div>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className="chassis-key px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 text-[#181e22] self-start sm:self-center"
-          >
-            <Key className="w-3.5 h-3.5 text-[#f15b22]" />
-            <span>GENERATE SIGNED APPROVAL</span>
-          </button>
-        </div>
-
-        {/* Policy Grid */}
-        <div className="bg-[#b6bec2] p-3 rounded-lg shadow-well border border-[#a2abb0] border-b-white mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-          {policies.map((pol) => (
-            <div
-              key={pol.policy_id}
-              className="p-4 rounded bg-[#e7eaeb] border border-[#ffffff] border-b-[#9ca5aa] shadow-[0_2px_4px_rgba(0,0,0,0.12)] space-y-2 text-xs font-mono"
-            >
-              <div className="flex items-center justify-between border-b border-[#cbd0d2] pb-1.5">
-                <span className="font-bold text-[#181e22]">{pol.policy_id}</span>
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                    pol.decision === "ALLOW"
-                      ? "bg-[#142c1f] text-[#4ade80] border border-[#4ade80]/40"
-                      : "bg-[#362514] text-[#fbbf24] border border-[#fbbf24]/40"
-                  }`}
-                >
-                  {pol.decision}
-                </span>
-              </div>
-              <h3 className="font-sans font-bold text-sm text-[#181e22]">{pol.name}</h3>
-              <p className="font-sans text-xs text-[#414b52]">{pol.description}</p>
-
-              <div className="pt-2 border-t border-[#cbd0d2] text-[10px] text-[#526068] space-y-1">
-                <div>SOURCE PATTERN: <span className="text-[#181e22]">{pol.source_pattern}</span></div>
-                <div>OPERATION: <span className="text-[#181e22]">{pol.operation}</span></div>
-                <div>RESOURCE SCOPE: <span className="text-[#181e22]">{pol.resource_pattern}</span></div>
-                {pol.destination_pattern && <div>DESTINATION: <span className="text-[#181e22]">{pol.destination_pattern}</span></div>}
-                {pol.requires_verifiable_approval && (
-                  <div className="text-[#f15b22] font-bold flex items-center space-x-1 mt-1">
-                    <span className="lamp-orange"></span>
-                    <span>REQUIRES VERIFIABLE HMAC APPROVAL TOKEN</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
 
       {/* Admin Token Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-[#cbd0d2] border-2 border-[#b0b8bc] rounded-xl p-6 max-w-lg w-full space-y-4 shadow-2xl relative">
-            <span className="chassis-screw absolute top-3 left-3"></span>
-            <span className="chassis-screw absolute top-3 right-3"></span>
-
-            <div className="flex items-center justify-between pb-3 border-b border-[#a4adb2] px-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#383139]/40 backdrop-blur-sm p-4">
+          <div className="clay-cushion-cream p-6 sm:p-8 max-w-lg w-full space-y-5 rounded-[40px] shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-[#383139]/10">
               <div className="flex items-center space-x-2">
-                <Key className="w-5 h-5 text-[#f15b22]" />
-                <h3 className="text-sm font-bold text-[#181e22] uppercase tracking-wide font-mono">
-                  KEY-SWITCH // ISSUE VERIFIABLE APPROVAL TOKEN
+                <div className="w-8 h-8 rounded-full bg-[#f6a3ca] flex items-center justify-center shadow-inner">
+                  <Key className="w-4 h-4 text-[#383139]" />
+                </div>
+                <h3 className="text-base font-bold text-[#383139]">
+                  Issue Verifiable Approval Token
                 </h3>
               </div>
               <button
@@ -133,112 +136,127 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({ policies, onApprov
                   setShowModal(false);
                   setIssuedToken(null);
                 }}
-                className="text-[#5b6871] hover:text-[#181e22] font-mono text-sm"
+                className="w-8 h-8 rounded-full bg-[#f1f2fa] flex items-center justify-center text-sm font-bold text-[#383139] hover:bg-white shadow-sm"
               >
-                [X]
+                ✕
               </button>
             </div>
 
             {issuedToken ? (
-              <div className="recessed-screen p-4 space-y-3 text-xs font-mono">
-                <div className="flex items-center space-x-2 text-[#4ade80] font-bold">
-                  <Check className="w-4 h-4" />
-                  <span>TOKEN CRYPTOGRAPHICALLY SIGNED & REGISTERED</span>
+              <div className="clay-recessed p-5 rounded-[25px] space-y-3 text-xs">
+                <div className="flex items-center space-x-2 text-[#245842] font-bold text-sm">
+                  <Check className="w-5 h-5 text-[#245842]" />
+                  <span>Token Cryptographically Signed & Registered</span>
                 </div>
-                <div className="text-[11px] text-[#d8dee1] space-y-1.5 break-all pt-2 border-t border-[#2d373d]">
-                  <div>ID: <span className="text-[#f2f4f4] font-bold">{issuedToken.approval_id}</span></div>
-                  <div>ACTOR: {issuedToken.actor}</div>
-                  <div>AGENT: {issuedToken.target_agent_id}</div>
-                  <div>SCOPE: {issuedToken.scope_resource}</div>
-                  <div>EXPIRES: {issuedToken.expires_at}</div>
-                  <div>HMAC SIGNATURE: <span className="text-[#f15b22] text-[10px]">{issuedToken.hmac_signature}</span></div>
+                <div className="text-xs text-[#383139] space-y-1.5 break-all pt-2 border-t border-[#383139]/10 font-mono">
+                  <div>ID: <span className="font-bold">{issuedToken.approval_id}</span></div>
+                  <div>Actor: {issuedToken.actor}</div>
+                  <div>Target Agent: {issuedToken.target_agent_id}</div>
+                  <div>Resource Scope: {issuedToken.scope_resource}</div>
+                  <div>Operation: {issuedToken.operation}</div>
+                  <div>Valid Until: {new Date(issuedToken.expires_at).toLocaleTimeString()}</div>
+                  <div className="p-2 rounded bg-white/70 text-[11px] font-bold text-[#383139] shadow-inner mt-2">
+                    Signature: {issuedToken.signature}
+                  </div>
                 </div>
+
                 <button
                   onClick={() => {
                     setShowModal(false);
                     setIssuedToken(null);
                   }}
-                  className="chassis-key w-full py-2 text-xs font-bold uppercase tracking-wider text-[#181e22] mt-3"
+                  className="clay-btn clay-btn-primary w-full py-2.5 mt-3 text-xs font-bold"
                 >
-                  DISMISS TERMINAL
+                  Close & Return
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmitApproval} className="space-y-3 text-xs font-mono">
+              <form onSubmit={handleSubmitApproval} className="space-y-4">
                 <div>
-                  <label className="text-[#414b52] font-semibold block mb-1">Administrative Actor Authority</label>
+                  <label className="text-xs font-bold text-[#48404b] block mb-1">
+                    Actor Identity:
+                  </label>
                   <input
                     type="text"
                     value={actor}
                     onChange={(e) => setActor(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-[#20272b] border border-[#141a1d] rounded text-[#f2f4f4] focus:outline-none focus:ring-1 focus:ring-[#f15b22]"
                     required
+                    className="w-full px-4 py-2 bg-white rounded-full text-xs sm:text-sm font-mono text-[#383139] shadow-[inset_1px_1px_3px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#48404b] block mb-1">
+                    Target Agent ID:
+                  </label>
+                  <input
+                    type="text"
+                    value={targetAgentId}
+                    onChange={(e) => setTargetAgentId(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 bg-white rounded-full text-xs sm:text-sm font-mono text-[#383139] shadow-[inset_1px_1px_3px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#48404b] block mb-1">
+                    Resource Scope URI:
+                  </label>
+                  <input
+                    type="text"
+                    value={scopeResource}
+                    onChange={(e) => setScopeResource(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 bg-white rounded-full text-xs sm:text-sm font-mono text-[#383139] shadow-[inset_1px_1px_3px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[#414b52] font-semibold block mb-1">Target Agent URI</label>
-                    <input
-                      type="text"
-                      value={targetAgentId}
-                      onChange={(e) => setTargetAgentId(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-[#20272b] border border-[#141a1d] rounded text-[#f2f4f4] text-[11px]"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[#414b52] font-semibold block mb-1">Operation</label>
+                    <label className="text-xs font-bold text-[#48404b] block mb-1">
+                      Operation:
+                    </label>
                     <select
                       value={operation}
                       onChange={(e) => setOperation(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-[#20272b] border border-[#141a1d] rounded text-[#f2f4f4]"
+                      className="w-full px-3 py-2 bg-white rounded-full text-xs font-mono text-[#383139] shadow-[inset_1px_1px_3px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
                     >
                       <option value="READ">READ</option>
                       <option value="TRANSFER">TRANSFER</option>
-                      <option value="TOOL_CALL">TOOL_CALL</option>
+                      <option value="EXECUTE">EXECUTE</option>
+                      <option value="QUERY">QUERY</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-[#48404b] block mb-1">
+                      Duration (Mins):
+                    </label>
+                    <input
+                      type="number"
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value))}
+                      min={1}
+                      max={1440}
+                      className="w-full px-4 py-2 bg-white rounded-full text-xs font-mono text-[#383139] shadow-[inset_1px_1px_3px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
+                    />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[#414b52] font-semibold block mb-1">Scope Resource Pattern</label>
-                  <input
-                    type="text"
-                    value={scopeResource}
-                    onChange={(e) => setScopeResource(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-[#20272b] border border-[#141a1d] rounded text-[#f2f4f4] text-[11px]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[#414b52] font-semibold block mb-1">Duration (Minutes)</label>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 bg-[#20272b] border border-[#141a1d] rounded text-[#f2f4f4]"
-                    min="1"
-                    max="1440"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-3 border-t border-[#a4adb2]">
+                <div className="pt-2 flex justify-end space-x-2">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="chassis-key px-4 py-2 text-xs font-bold text-[#414b52]"
+                    className="clay-btn clay-btn-cream px-4 py-2 text-xs font-bold text-[#48404b]"
                   >
-                    CANCEL
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="chassis-key px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#181e22]"
+                    className="clay-btn clay-btn-primary px-5 py-2 text-xs font-bold"
                   >
-                    {isSubmitting ? "SIGNING..." : "COMMIT HMAC TOKEN"}
+                    {isSubmitting ? "Generating HMAC..." : "Cryptographically Sign"}
                   </button>
                 </div>
               </form>
