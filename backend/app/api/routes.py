@@ -273,3 +273,17 @@ def revoke_approval(approval_id: str):
     if not success:
         raise HTTPException(status_code=404, detail=f"Approval '{approval_id}' not found.")
     return {"status": "revoked", "approval_id": approval_id}
+
+@api_router.post("/api/system/reset")
+def reset_system():
+    """
+    Clears all stale audit events, incidents, and dynamic approvals from both
+    database and memory, and resets agent status to default baseline.
+    """
+    audit_store.clear()
+    approval_manager.clear()
+    agent_registry.reset()
+    return {
+        "status": "success",
+        "message": "All stale audit events, incidents, and approvals cleared successfully."
+    }

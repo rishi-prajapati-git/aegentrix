@@ -10,7 +10,7 @@ import base64
 from ..models.audit import AuditEvent, Incident, PaginatedAuditEventsResponse
 from ..core.security import sanitize_payload
 from ..db.session import SessionLocal, init_db
-from ..db.models import AuditEventDB, IncidentDB
+from ..db.models import AuditEventDB, IncidentDB, ApprovalRecordDB
 
 logger = logging.getLogger(__name__)
 
@@ -401,6 +401,7 @@ class AuditStore:
                 with SessionLocal() as db:
                     db.query(AuditEventDB).delete()
                     db.query(IncidentDB).delete()
+                    db.query(ApprovalRecordDB).delete()
                     db.commit()
             except Exception as e:
                 logger.debug(f"Failed to clear database tables: {e}")
