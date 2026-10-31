@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { AuditEvent } from "../lib/api";
-import { Search, Filter, Download, ChevronDown, ChevronRight, Shield, AlertTriangle, Check, X, Clock } from "lucide-react";
+import { Search, Filter, Download, ChevronDown, ChevronRight, Shield, Check, X, Clock, Terminal } from "lucide-react";
 
 interface AuditTimelineProps {
   events: AuditEvent[];
@@ -33,32 +33,32 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
     setExpandedEventId(expandedEventId === id ? null : id);
   };
 
-  const getDecisionBadge = (decision: string) => {
+  const getDecisionPill = (decision: string) => {
     switch (decision) {
       case "ALLOW":
         return (
-          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <Check className="w-3 h-3" />
+          <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#132d20] border border-[#22c55e]/40 text-[#4ade80] text-[10px] font-mono font-bold tracking-wider">
+            <span className="lamp-green"></span>
             <span>ALLOW</span>
           </span>
         );
       case "DENY":
         return (
-          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-            <X className="w-3 h-3" />
+          <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#37191d] border border-[#f87171]/40 text-[#f87171] text-[10px] font-mono font-bold tracking-wider">
+            <span className="lamp-orange"></span>
             <span>DENY</span>
           </span>
         );
       case "REQUIRE_APPROVAL":
         return (
-          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            <Clock className="w-3 h-3" />
-            <span>APPROVAL REQ</span>
+          <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-[#332213] border border-[#f59e0b]/40 text-[#fbbf24] text-[10px] font-mono font-bold tracking-wider">
+            <span className="lamp-orange"></span>
+            <span>APPROVAL_REQ</span>
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300">
+          <span className="px-2 py-0.5 rounded bg-[#2a343b] text-[#d8dee1] text-[10px] font-mono">
             {decision}
           </span>
         );
@@ -71,76 +71,90 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
   };
 
   return (
-    <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-cyber-border">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Shield className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-lg font-bold text-slate-100">Audit Timeline (Security Event Stream)</h2>
+    <div className="bg-[#cbd0d2] border-2 border-[#b0b8bc] rounded-xl p-5 shadow-chassis relative">
+      {/* Decorative Screws */}
+      <span className="chassis-screw absolute top-3 left-3"></span>
+      <span className="chassis-screw absolute top-3 right-3"></span>
+
+      {/* Panel Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#a4adb2] px-2">
+        <div className="flex items-center space-x-3">
+          <div className="vent-assembly">
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time, cryptographically verified record of every protected read, transfer, and tool invocation.
-          </p>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="engraved-label text-xs font-bold text-[#181e22]">BAY 03 // AUDIT TIMELINE</span>
+              <span className="text-[10px] font-mono text-[#58656d]">RECORDING STREAM</span>
+            </div>
+            <p className="text-xs text-[#414b52] mt-0.5 font-sans">
+              Cryptographically verified audit trail of all gated operations and advisory signals.
+            </p>
+          </div>
         </div>
 
+        {/* Action Controls */}
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleExport("json")}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition"
+            className="chassis-key px-3 py-1.5 text-[11px] font-mono font-semibold text-[#181e22] flex items-center space-x-1"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>JSON</span>
+            <Download className="w-3.5 h-3.5 text-[#526068]" />
+            <span>EXPORT JSON</span>
           </button>
           <button
             onClick={() => handleExport("csv")}
-            className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition"
+            className="chassis-key px-3 py-1.5 text-[11px] font-mono font-semibold text-[#181e22] flex items-center space-x-1"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>CSV</span>
+            <Download className="w-3.5 h-3.5 text-[#526068]" />
+            <span>EXPORT CSV</span>
           </button>
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition disabled:opacity-50"
+            className="chassis-key px-3 py-1.5 text-[11px] font-mono font-semibold text-[#181e22] flex items-center space-x-1.5"
           >
-            {isLoading ? "Refreshing..." : "Live Refresh"}
+            <span className={isLoading ? "lamp-orange" : "lamp-green"}></span>
+            <span>{isLoading ? "POLLING..." : "REFRESH"}</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 my-4">
+      {/* Recessed Control Sub-Bay: Search and Filter */}
+      <div className="bg-[#b6bec2] p-2.5 rounded-lg shadow-well border border-[#a2abb0] border-b-white my-3 flex flex-col sm:flex-row gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#525f67]" />
           <input
             type="text"
-            placeholder="Search by event ID, agent, resource, or reason..."
+            placeholder="Search telemetry by event ID, agent, resource URI, reason code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className="w-full pl-8 pr-3 py-1.5 bg-[#20272b] border border-[#141a1d] border-b-[#434d53] rounded text-xs font-mono text-[#f2f4f4] placeholder-[#76858e] shadow-inner focus:outline-none focus:ring-1 focus:ring-[#f15b22]"
           />
         </div>
 
         <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-slate-400" />
+          <Filter className="w-3.5 h-3.5 text-[#414b52]" />
           <select
             value={decisionFilter}
             onChange={(e) => setDecisionFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="bg-[#20272b] border border-[#141a1d] border-b-[#434d53] rounded px-3 py-1.5 text-xs font-mono text-[#f2f4f4] shadow-inner focus:outline-none focus:ring-1 focus:ring-[#f15b22]"
           >
-            <option value="ALL">All Decisions ({events.length})</option>
-            <option value="ALLOW">Allowed Only</option>
-            <option value="DENY">Denied Only</option>
-            <option value="REQUIRE_APPROVAL">Approval Required</option>
+            <option value="ALL">ALL FILTER ({events.length})</option>
+            <option value="ALLOW">ALLOW ONLY</option>
+            <option value="DENY">DENY ONLY</option>
+            <option value="REQUIRE_APPROVAL">APPROVAL REQUIRED</option>
           </select>
         </div>
       </div>
 
-      {/* Events Stream */}
-      <div className="space-y-3 mt-4">
+      {/* Recessed Dark Telemetry Output Deck */}
+      <div className="recessed-screen p-3 space-y-2 mt-3 max-h-[620px] overflow-y-auto">
         {filteredEvents.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 text-xs">
-            No events matching your search or filter criteria.
+          <div className="text-center py-12 text-[#7f8e97] text-xs font-mono">
+            // NO AUDIT EVENTS MATCHING FILTER CRITERIA //
           </div>
         ) : (
           filteredEvents.map((ev) => {
@@ -148,94 +162,95 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
             return (
               <div
                 key={ev.event_id}
-                className={`border rounded-lg transition-all ${
+                className={`border rounded transition-all text-xs font-mono ${
                   ev.decision === "DENY"
-                    ? "border-rose-500/20 bg-rose-500/5 hover:border-rose-500/40"
+                    ? "border-[#f87171]/30 bg-[#251e21]"
                     : ev.decision === "REQUIRE_APPROVAL"
-                    ? "border-amber-500/20 bg-amber-500/5 hover:border-amber-500/40"
-                    : "border-slate-800 bg-slate-900/60 hover:border-slate-700"
+                    ? "border-[#f59e0b]/30 bg-[#28231a]"
+                    : "border-[#2f3940] bg-[#1a2024] hover:border-[#414f57]"
                 }`}
               >
                 <div
                   onClick={() => toggleExpand(ev.event_id)}
-                  className="p-4 cursor-pointer flex items-center justify-between"
+                  className="p-3 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2.5">
                     {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-[#7d8c95]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <ChevronRight className="w-4 h-4 text-[#7d8c95]" />
                     )}
                     <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-mono text-xs font-semibold text-cyan-400">
-                          {ev.operation}
-                        </span>
-                        <span className="text-xs text-slate-400">→</span>
-                        <span className="font-mono text-xs text-slate-200">
-                          {ev.target_resource_or_recipient}
-                        </span>
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="font-bold text-[#f2f4f4]">{ev.operation}</span>
+                        <span className="text-[#6c7b84]">→</span>
+                        <span className="text-[#a4b5bf]">{ev.target_resource_or_recipient}</span>
                         {ev.advisory_model_analysis && ev.advisory_model_analysis.flags.length > 0 && (
-                          <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono">
-                            AI FLAGGED: {ev.advisory_model_analysis.flags.join(", ")}
+                          <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-[#f15b22]/20 border border-[#f15b22]/40 text-[#f15b22] text-[9px] font-bold">
+                            <span className="lamp-orange"></span>
+                            <span>AI FLAG: {ev.advisory_model_analysis.flags.join(", ")}</span>
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center space-x-3 mt-1 text-[11px] text-slate-400 font-mono">
-                        <span>Agent: {ev.source_agent_id}</span>
+                      <div className="flex items-center space-x-2 mt-1 text-[10px] text-[#788892]">
+                        <span>SRC: {ev.source_agent_id}</span>
                         <span>•</span>
                         <span>{new Date(ev.timestamp).toLocaleTimeString()}</span>
                         <span>•</span>
-                        <span className="text-slate-500">{ev.event_id}</span>
+                        <span className="text-[#59666f]">{ev.event_id}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+                  <div className="flex items-center space-x-3 self-end sm:self-center">
+                    <span className="text-[11px] text-[#8e9fa9] hidden md:inline">
                       {ev.reason_code}
                     </span>
-                    {getDecisionBadge(ev.decision)}
+                    {getDecisionPill(ev.decision)}
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-2 border-t border-slate-800/60 bg-slate-950/40 space-y-3 text-xs">
+                  <div className="px-4 pb-4 pt-2 border-t border-[#263137] bg-[#121619] space-y-3 text-[11px] text-[#d8dee1]">
                     <div>
-                      <span className="text-slate-400 font-semibold">Reason Description:</span>
-                      <p className="mt-1 text-slate-300 font-mono text-[11px] bg-slate-900 p-2.5 rounded border border-slate-800">
+                      <span className="text-[#768691] font-semibold uppercase text-[10px] block">
+                        Reason Description:
+                      </span>
+                      <p className="mt-1 p-2 rounded bg-[#1c2327] border border-[#2b353b] text-[#f2f4f4]">
                         {ev.reason_description}
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <span className="text-slate-400 font-semibold">Workflow & Correlation:</span>
-                        <div className="mt-1 font-mono text-[11px] text-slate-300 space-y-1">
-                          <div>Workflow ID: {ev.workflow_id}</div>
-                          <div>Correlation ID: {ev.correlation_id}</div>
-                          <div>Matched Policy: {ev.matched_policy_id || "POL-DEFAULT"}</div>
-                          <div>Payload Size: {ev.payload_size_bytes} bytes</div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      <div className="space-y-1">
+                        <span className="text-[#768691] font-semibold uppercase text-[10px] block">
+                          Workflow & Provenance:
+                        </span>
+                        <div>Workflow ID: <span className="text-[#f2f4f4]">{ev.workflow_id}</span></div>
+                        <div>Correlation ID: <span className="text-[#f2f4f4]">{ev.correlation_id}</span></div>
+                        <div>Matched Policy: <span className="text-[#f2f4f4]">{ev.matched_policy_id || "POL-DEFAULT"}</span></div>
+                        <div>Payload Scope: <span className="text-[#f2f4f4]">{ev.payload_size_bytes} Bytes</span></div>
                       </div>
 
                       {ev.advisory_model_analysis && (
-                        <div>
-                          <span className="text-slate-400 font-semibold">Advisory AI Analysis:</span>
-                          <div className="mt-1 font-mono text-[11px] text-slate-300 space-y-1">
-                            <div>Provider: {ev.advisory_model_analysis.provider}</div>
-                            <div>Risk Score: {ev.advisory_model_analysis.risk_score}</div>
-                            <div>Latency: {ev.advisory_model_analysis.latency_ms} ms</div>
-                            <div>Summary: {ev.advisory_model_analysis.summary}</div>
-                          </div>
+                        <div className="space-y-1">
+                          <span className="text-[#768691] font-semibold uppercase text-[10px] block">
+                            Advisory AI Signal Details:
+                          </span>
+                          <div>Provider: <span className="text-[#f2f4f4]">{ev.advisory_model_analysis.provider}</span></div>
+                          <div>Risk Score: <span className="text-[#f15b22] font-bold">{ev.advisory_model_analysis.risk_score}</span></div>
+                          <div>Latency: <span className="text-[#f2f4f4]">{ev.advisory_model_analysis.latency_ms} ms</span></div>
+                          <div>Diagnostic: <span className="text-[#d8dee1]">{ev.advisory_model_analysis.summary}</span></div>
                         </div>
                       )}
                     </div>
 
                     {ev.sanitized_metadata && Object.keys(ev.sanitized_metadata).length > 0 && (
-                      <div>
-                        <span className="text-slate-400 font-semibold">Sanitized Metadata (Secrets Redacted):</span>
-                        <pre className="mt-1 p-2.5 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto">
+                      <div className="pt-1">
+                        <span className="text-[#768691] font-semibold uppercase text-[10px] block">
+                          Sanitized Payload Metadata [Secrets Redacted]:
+                        </span>
+                        <pre className="mt-1 p-2 rounded bg-[#181e22] border border-[#293237] text-[10px] text-[#93a6b2] overflow-x-auto">
                           {JSON.stringify(ev.sanitized_metadata, null, 2)}
                         </pre>
                       </div>

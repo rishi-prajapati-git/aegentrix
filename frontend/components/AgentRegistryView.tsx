@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AgentModel, updateAgentStatus } from "../lib/api";
-import { Users, Shield, Check, X, Ban, RefreshCw, AlertTriangle } from "lucide-react";
+import { Users, Shield, Check, X, Ban } from "lucide-react";
 
 interface AgentRegistryViewProps {
   agents: AgentModel[];
@@ -16,7 +16,7 @@ export const AgentRegistryView: React.FC<AgentRegistryViewProps> = ({ agents, on
     setUpdatingId(agent.agent_id);
     const newStatus = agent.status === "ACTIVE" ? "REVOKED" : "ACTIVE";
     try {
-      await updateAgentStatus(agent.agent_id, newStatus, "Toggled from SOC dashboard");
+      await updateAgentStatus(agent.agent_id, newStatus, "Hardware switch toggled from SOC dashboard");
       onRefresh();
     } catch (err) {
       alert("Failed to update agent status");
@@ -26,69 +26,71 @@ export const AgentRegistryView: React.FC<AgentRegistryViewProps> = ({ agents, on
   };
 
   return (
-    <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
-      <div className="flex items-center justify-between pb-4 border-b border-cyber-border">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Users className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-lg font-bold text-slate-100">Synthetic Agent Registry</h2>
+    <div className="bg-[#cbd0d2] border-2 border-[#b0b8bc] rounded-xl p-5 shadow-chassis relative">
+      <span className="chassis-screw absolute top-3 left-3"></span>
+      <span className="chassis-screw absolute top-3 right-3"></span>
+
+      {/* Panel Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#a4adb2] px-2 gap-3">
+        <div className="flex items-center space-x-3">
+          <div className="vent-assembly">
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Authoritative registry of agent identities, trust boundaries, and least-privilege capability profiles.
-          </p>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="engraved-label text-xs font-bold text-[#181e22]">BAY 05 // AGENT REGISTRY MATRIX</span>
+              <span className="text-[10px] font-mono text-[#58656d]">IDENTITY & CAPABILITY DECK</span>
+            </div>
+            <p className="text-xs text-[#414b52] mt-0.5 font-sans">
+              Authoritative identity store, trust tier assignments, and least-privilege capability boundaries.
+            </p>
+          </div>
         </div>
 
         <button
           onClick={onRefresh}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition"
+          className="chassis-key px-3 py-1.5 text-[11px] font-mono font-semibold text-[#181e22] self-start sm:self-center"
         >
-          Refresh Registry
+          SYNC REGISTRY
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      {/* Grid of Agent Module Plates */}
+      <div className="bg-[#b6bec2] p-3 rounded-lg shadow-well border border-[#a2abb0] border-b-white mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
         {agents.map((ag) => {
           const isRevoked = ag.status === "REVOKED";
-          const isSuspended = ag.status === "SUSPENDED";
           return (
             <div
               key={ag.agent_id}
-              className={`p-5 rounded-xl border transition-all ${
+              className={`p-4 rounded border transition-all relative ${
                 isRevoked
-                  ? "bg-rose-950/20 border-rose-500/40"
-                  : isSuspended
-                  ? "bg-amber-950/20 border-amber-500/40"
-                  : "bg-slate-900/70 border-slate-800 hover:border-slate-700"
+                  ? "bg-[#d4d9dc] border-[#f87171]/50 shadow-inner"
+                  : "bg-[#e7eaeb] border-[#ffffff] border-b-[#9ca5aa] shadow-[0_2px_4px_rgba(0,0,0,0.12)]"
               }`}
             >
-              <div className="flex items-start justify-between">
+              <span className="chassis-screw absolute top-2 right-2"></span>
+
+              <div className="flex items-start justify-between pr-4">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="text-sm font-bold text-slate-100">{ag.name}</h3>
-                    <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                        ag.trust_tier === "PRIVILEGED"
-                          ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                          : "bg-blue-500/20 text-blue-300 border-blue-500/30"
-                      }`}
-                    >
+                    <span className={isRevoked ? "lamp-orange" : "lamp-green"}></span>
+                    <h3 className="text-sm font-bold text-[#181e22]">{ag.name}</h3>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#cbd0d2] text-[#2c373d] border border-[#a5afb5] font-semibold uppercase">
                       {ag.trust_tier}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">{ag.role}</p>
-                  <span className="text-[11px] font-mono text-cyan-400 mt-1 block">
-                    {ag.agent_id}
-                  </span>
+                  <p className="text-xs text-[#414b52] mt-1 font-sans">{ag.role}</p>
+                  <span className="text-[10px] font-mono text-[#526068] mt-0.5 block">{ag.agent_id}</span>
                 </div>
 
                 <div className="flex flex-col items-end space-y-2">
                   <span
-                    className={`text-xs font-mono px-2 py-0.5 rounded-full font-semibold ${
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
                       isRevoked
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                        : isSuspended
-                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                        : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        ? "bg-[#3d1a1e] text-[#f87171] border border-[#f87171]/40"
+                        : "bg-[#142c1f] text-[#4ade80] border border-[#4ade80]/40"
                     }`}
                   >
                     {ag.status}
@@ -97,26 +99,22 @@ export const AgentRegistryView: React.FC<AgentRegistryViewProps> = ({ agents, on
                   <button
                     onClick={() => handleToggleStatus(ag)}
                     disabled={updatingId === ag.agent_id}
-                    className={`text-[11px] px-2.5 py-1 rounded border transition ${
-                      isRevoked
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-300 border-rose-500/30 hover:bg-rose-500/30"
-                    }`}
+                    className="chassis-key px-2.5 py-1 text-[10px] font-mono font-bold text-[#181e22]"
                   >
-                    {isRevoked ? "Restore Access" : "Revoke Privileges"}
+                    {isRevoked ? "RESTORE PRIVILEGES" : "REVOKE PRIVILEGES"}
                   </button>
                 </div>
               </div>
 
-              {/* Capability Matrix */}
-              <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2 text-xs">
+              {/* Capability Breakdown */}
+              <div className="mt-3 pt-3 border-t border-[#cbd0d2] space-y-2 text-[11px] font-mono">
                 <div>
-                  <span className="text-slate-400 text-[11px] font-semibold">Allowed Resources:</span>
+                  <span className="text-[#59666f] text-[10px] font-semibold uppercase block">Authorized Resources:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {ag.capabilities.allowed_resources.map((res, i) => (
                       <span
                         key={i}
-                        className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-[#20272b] text-[#f2f4f4] border border-[#141a1d]"
                       >
                         {res}
                       </span>
@@ -125,12 +123,12 @@ export const AgentRegistryView: React.FC<AgentRegistryViewProps> = ({ agents, on
                 </div>
 
                 <div>
-                  <span className="text-slate-400 text-[11px] font-semibold">Explicitly Prohibited:</span>
+                  <span className="text-[#59666f] text-[10px] font-semibold uppercase block">Explicitly Prohibited:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {ag.explicitly_denied_resources.map((res, i) => (
                       <span
                         key={i}
-                        className="font-mono text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-[#351a1e] text-[#fca5a5] border border-[#f87171]/40"
                       >
                         {res}
                       </span>
@@ -140,12 +138,12 @@ export const AgentRegistryView: React.FC<AgentRegistryViewProps> = ({ agents, on
 
                 {ag.capabilities.allowed_tools && ag.capabilities.allowed_tools.length > 0 && (
                   <div>
-                    <span className="text-slate-400 text-[11px] font-semibold">Allowlisted Tools:</span>
+                    <span className="text-[#59666f] text-[10px] font-semibold uppercase block">Allowlisted Hardware Tools:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {ag.capabilities.allowed_tools.map((tool, i) => (
                         <span
                           key={i}
-                          className="font-mono text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20"
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e2329] text-[#cbd5e1] border border-[#333d47]"
                         >
                           {tool}
                         </span>

@@ -1,33 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #0a0f1d;
-  --foreground: #f8fafc;
+  --dp-color-chassis: #cbd0d2;
+  --dp-color-raised: #e7eaeb;
+  --dp-color-well: #b6bec2;
+  --dp-color-ink: #181e22;
+  --dp-color-label: #414b52;
+  --dp-color-field: #20272b;
+  --dp-color-on-field: #f2f4f4;
+  --dp-color-on-field-muted: #d8dee1;
+  --dp-color-accent: #f15b22;
+  --dp-typography-sans: "Host Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --dp-typography-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --dp-typography-body: 17px;
+  --dp-typography-reading: 16px;
+  --dp-typography-metadata: 13px;
+  --dp-typography-label: 11px;
+  --dp-spacing-column-gap: 25px;
+  --dp-spacing-compact-gap: 12px;
+  --dp-radius-key: 4px;
+  --dp-radius-circular: 50%;
+  --dp-border-hairline: 1px;
+  --dp-motion-navigation: 130ms;
+  --dp-motion-key: 140ms;
+  --dp-motion-dial: 150ms;
+  --dp-motion-settle: cubic-bezier(0.3, 0.7, 0.4, 1.25);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--dp-color-ink);
+  background-color: #2b3236;
+  background-image: 
+    radial-gradient(#3a4348 1px, transparent 1px),
+    linear-gradient(to bottom, #262c30, #1c2124);
+  background-size: 24px 24px, 100% 100%;
+  font-family: var(--dp-typography-sans);
+  font-size: var(--dp-typography-body);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbars for cyber look */
+/* Custom Scrollbar for Industrial Theme */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0f1d;
+  background: var(--dp-color-field);
+  border-left: 1px solid #2e373d;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f293d;
-  border-radius: 3px;
+  background: #3e4a52;
+  border-radius: 4px;
+  border: 1px solid #1c2226;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #505e68;
+}
+
+/* Hardware Hardware Screws */
+.chassis-screw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dce1e3 0%, #9ca4a8 100%);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.8);
+  position: relative;
+  display: inline-block;
+}
+.chassis-screw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 1.5px;
+  background: #5a646a;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-radius: 0.5px;
+}
+
+/* Industrial Vent Slots */
+.vent-assembly {
+  display: flex;
+  gap: 4px;
+}
+.vent-slot {
+  width: 3px;
+  height: 18px;
+  background: #1b2124;
+  border-radius: 1.5px;
+  box-shadow: inset 0 1px 1px #0a0e10, 0 1px 0 rgba(255,255,255,0.7);
+}
+
+/* Engraved Label Effect */
+.engraved-label {
+  font-family: var(--dp-typography-mono);
+  font-size: var(--dp-typography-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dp-color-label);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Raised Key Button */
+.chassis-key {
+  background: linear-gradient(to bottom, #f3f5f6, var(--dp-color-raised));
+  border: 1px solid #c8cfd2;
+  border-top-color: #ffffff;
+  border-bottom-color: #9aa3a7;
+  border-radius: var(--dp-radius-key);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 0 #959fa4, 0 3px 5px rgba(0,0,0,0.2);
+  transition: all var(--dp-motion-key) var(--dp-motion-settle);
+  color: var(--dp-color-ink);
+  font-family: var(--dp-typography-mono);
+}
+.chassis-key:hover {
+  background: linear-gradient(to bottom, #ffffff, #edf0f1);
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 3px 0 #8b959a, 0 5px 8px rgba(0,0,0,0.22);
+}
+.chassis-key:active, .chassis-key.active {
+  background: #d8dee0;
+  border-top-color: #8f999e;
+  border-bottom-color: #ffffff;
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.7);
+  color: #0c1012;
+}
+
+/* Circular Dial Button */
+.chassis-dial {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f9fafb 0%, #d8dde0 60%, #a4adb2 100%);
+  border: 2px solid #8e989d;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,1), 0 4px 8px rgba(0,0,0,0.3), 0 1px 0 #828c91;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--dp-motion-dial) var(--dp-motion-settle);
+  position: relative;
+  cursor: pointer;
+}
+.chassis-dial:hover {
+  transform: translateY(-1px) rotate(4deg);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,1), 0 6px 12px rgba(0,0,0,0.32);
+}
+.chassis-dial:active {
+  transform: translateY(2px) rotate(12deg);
+  box-shadow: inset 0 3px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.6);
+}
+.chassis-dial-indicator {
+  position: absolute;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--dp-color-accent);
+  box-shadow: 0 0 4px var(--dp-color-accent);
+}
+
+/* Recessed Screen Field */
+.recessed-screen {
+  background: var(--dp-color-field);
+  color: var(--dp-color-on-field);
+  border: 1px solid #141a1d;
+  border-top-color: #0d1214;
+  border-bottom-color: #434d53;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.7);
+  border-radius: 4px;
+}
+
+/* Orange LED Indicator Lamp */
+.lamp-orange {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--dp-color-accent);
+  box-shadow: 0 0 6px var(--dp-color-accent), inset 0 1px 1px rgba(255,255,255,0.8);
+  display: inline-block;
+}
+.lamp-green {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e, inset 0 1px 1px rgba(255,255,255,0.8);
+  display: inline-block;
+}
+.lamp-off {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #4b5563;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6);
+  display: inline-block;
+}
+
+/* Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .chassis-key:hover, .chassis-key:active, .chassis-dial:hover, .chassis-dial:active {
+    transform: none !important;
+  }
 }

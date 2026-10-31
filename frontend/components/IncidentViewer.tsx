@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Incident, updateIncidentStatus } from "../lib/api";
-import { ShieldAlert, AlertTriangle, CheckCircle, Clock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldAlert, ArrowRight, ShieldCheck } from "lucide-react";
 
 interface IncidentViewerProps {
   incidents: Incident[];
@@ -15,7 +15,7 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
-      await updateIncidentStatus(id, newStatus, `Updated via SOC interface to ${newStatus}`);
+      await updateIncidentStatus(id, newStatus, `Updated via Industrial SOC interface to ${newStatus}`);
       onRefresh();
     } catch (err) {
       alert("Failed to update incident status");
@@ -25,31 +25,43 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
   };
 
   return (
-    <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
-      <div className="flex items-center justify-between pb-4 border-b border-cyber-border">
-        <div>
-          <div className="flex items-center space-x-2">
-            <ShieldAlert className="w-5 h-5 text-purple-400" />
-            <h2 className="text-lg font-bold text-slate-100">Temporal Risk Correlation & Incident Chains</h2>
+    <div className="bg-[#cbd0d2] border-2 border-[#b0b8bc] rounded-xl p-5 shadow-chassis relative">
+      <span className="chassis-screw absolute top-3 left-3"></span>
+      <span className="chassis-screw absolute top-3 right-3"></span>
+
+      {/* Panel Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#a4adb2] px-2 gap-3">
+        <div className="flex items-center space-x-3">
+          <div className="vent-assembly">
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
+            <span className="vent-slot"></span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Multi-stage attack pattern detection correlating prompt injection, unauthorized probing, and exfiltration attempts.
-          </p>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="engraved-label text-xs font-bold text-[#181e22]">BAY 04 // INCIDENT CHAINS</span>
+              <span className="text-[10px] font-mono text-[#58656d]">TEMPORAL CORRELATION</span>
+            </div>
+            <p className="text-xs text-[#414b52] mt-0.5 font-sans">
+              Autonomous multi-step attack correlation across distributed agent requests and exfiltration routes.
+            </p>
+          </div>
         </div>
 
         <button
           onClick={onRefresh}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition"
+          className="chassis-key px-3 py-1.5 text-[11px] font-mono font-semibold text-[#181e22] self-start sm:self-center"
         >
-          Refresh Incidents
+          POLL INCIDENTS
         </button>
       </div>
 
-      <div className="space-y-4 mt-6">
+      {/* Recessed Dark Incident Output Deck */}
+      <div className="space-y-3 mt-4">
         {incidents.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 text-xs">
-            <ShieldCheck className="w-8 h-8 mx-auto text-emerald-500/50 mb-2" />
-            No active incidents detected. All multi-agent workflows are operating within normal parameters.
+          <div className="recessed-screen p-8 text-center text-[#7e8d96] text-xs font-mono">
+            <ShieldCheck className="w-8 h-8 mx-auto text-[#4ade80] mb-2 opacity-80" />
+            // ZERO ACTIVE INCIDENTS DETECTED // WORKFLOW BOUNDARIES COMPLIANT //
           </div>
         ) : (
           incidents.map((inc) => {
@@ -58,39 +70,30 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
             return (
               <div
                 key={inc.incident_id}
-                className={`p-5 rounded-xl border transition ${
-                  isCritical
-                    ? "bg-rose-950/20 border-rose-500/30"
-                    : "bg-purple-950/20 border-purple-500/30"
+                className={`recessed-screen p-4 border transition ${
+                  isCritical ? "border-[#f15b22]/50 bg-[#241d20]" : "border-[#333d43] bg-[#1e2529]"
                 }`}
               >
-                <div className="flex items-start justify-between flex-wrap gap-2">
+                <div className="flex items-start justify-between flex-wrap gap-2 pb-3 border-b border-[#2e373d]">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span
-                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
-                          isCritical
-                            ? "bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse"
-                            : "bg-purple-500/20 text-purple-300 border-purple-500/40"
-                        }`}
-                      >
-                        {inc.severity} SEVERITY
+                      <span className="lamp-orange"></span>
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#f15b22]/20 text-[#f15b22] border border-[#f15b22]/40 tracking-wider">
+                        {inc.severity} RISK
                       </span>
-                      <span className="text-xs font-mono font-bold text-slate-100">
-                        {inc.rule_name}
-                      </span>
+                      <span className="text-xs font-mono font-bold text-[#f2f4f4]">{inc.rule_name}</span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-2 font-medium">{inc.description}</p>
+                    <p className="text-xs text-[#d8dee1] mt-2 font-mono">{inc.description}</p>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <span
-                      className={`text-xs font-mono px-2.5 py-0.5 rounded-full font-semibold ${
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
                         isOpen
-                          ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          ? "bg-[#3d1a1e] text-[#f87171] border border-[#f87171]/40"
                           : inc.status === "CONTAINED"
-                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                          : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          ? "bg-[#362514] text-[#fbbf24] border border-[#fbbf24]/40"
+                          : "bg-[#142c1f] text-[#4ade80] border border-[#4ade80]/40"
                       }`}
                     >
                       {inc.status}
@@ -100,47 +103,47 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
                       <button
                         onClick={() => handleUpdateStatus(inc.incident_id, "CONTAINED")}
                         disabled={updatingId === inc.incident_id}
-                        className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition"
+                        className="chassis-key px-2.5 py-1 text-[10px] font-mono font-bold text-[#181e22]"
                       >
-                        Contain
+                        CONTAIN
                       </button>
                     )}
                     {inc.status === "CONTAINED" && (
                       <button
                         onClick={() => handleUpdateStatus(inc.incident_id, "RESOLVED")}
                         disabled={updatingId === inc.incident_id}
-                        className="text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition"
+                        className="chassis-key px-2.5 py-1 text-[10px] font-mono font-bold text-[#181e22]"
                       >
-                        Resolve
+                        RESOLVE
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Correlated Event Chain */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80">
-                  <span className="text-slate-400 text-[11px] font-semibold">
-                    Correlated Attack Step Sequence ({inc.correlated_event_ids.length} Events):
+                {/* Hardware Chain Sequence Flow */}
+                <div className="mt-3 pt-1">
+                  <span className="text-[#83939e] text-[10px] font-mono uppercase font-semibold block">
+                    Correlated Event Sequence ({inc.correlated_event_ids.length} Steps):
                   </span>
                   <div className="flex items-center flex-wrap gap-2 mt-2">
                     {inc.correlated_event_ids.map((evId, idx) => (
                       <React.Fragment key={evId}>
-                        <span className="font-mono text-[10px] px-2 py-1 rounded bg-slate-900 text-cyan-300 border border-slate-700">
+                        <span className="font-mono text-[10px] px-2 py-1 rounded bg-[#13171a] text-[#f2f4f4] border border-[#2b353b]">
                           {evId}
                         </span>
                         {idx < inc.correlated_event_ids.length - 1 && (
-                          <ArrowRight className="w-3 h-3 text-slate-500" />
+                          <ArrowRight className="w-3 h-3 text-[#f15b22]" />
                         )}
                       </React.Fragment>
                     ))}
                   </div>
 
-                  <div className="mt-3 flex items-center space-x-4 text-[11px] text-slate-400 font-mono">
-                    <span>Workflow: {inc.workflow_id}</span>
+                  <div className="mt-3 flex items-center space-x-3 text-[10px] text-[#7a8a94] font-mono">
+                    <span>WF: {inc.workflow_id}</span>
                     <span>•</span>
-                    <span>Affected: {inc.affected_agents.join(", ")}</span>
+                    <span>TARGETS: {inc.affected_agents.join(", ")}</span>
                     <span>•</span>
-                    <span>{new Date(inc.timestamp).toLocaleTimeString()}</span>
+                    <span>LOGGED: {new Date(inc.timestamp).toLocaleTimeString()}</span>
                   </div>
                 </div>
               </div>
