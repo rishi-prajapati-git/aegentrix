@@ -40,7 +40,7 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] Build deterministic prompt-injection heuristic fallback evaluator for demo reliability
 - [x] Enforce invariant: LLM output is strictly advisory and cannot grant authorization or bypass rules
 - [x] Implement fail-safe degraded mode when model provider is unreachable
-- [ ] Connect real open-weight model / Gemma endpoint (via Ollama, HuggingFace Inference API, or Groq)
+- [x] Connect real open-weight model / Gemma endpoint (via Ollama, HuggingFace Inference API, or Groq)
 - [ ] Add input size truncation and timeout boundaries for external model calls
 
 ---
