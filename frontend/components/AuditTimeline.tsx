@@ -154,7 +154,7 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
       <div className="recessed-screen p-3 space-y-2 mt-3 max-h-[620px] overflow-y-auto">
         {filteredEvents.length === 0 ? (
           <div className="text-center py-12 text-[#7f8e97] text-xs font-mono">
-            // NO AUDIT EVENTS MATCHING FILTER CRITERIA //
+            {"// NO AUDIT EVENTS MATCHING FILTER CRITERIA //"}
           </div>
         ) : (
           filteredEvents.map((ev) => {

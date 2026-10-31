@@ -61,7 +61,7 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
         {incidents.length === 0 ? (
           <div className="recessed-screen p-8 text-center text-[#7e8d96] text-xs font-mono">
             <ShieldCheck className="w-8 h-8 mx-auto text-[#4ade80] mb-2 opacity-80" />
-            // ZERO ACTIVE INCIDENTS DETECTED // WORKFLOW BOUNDARIES COMPLIANT //
+            {"// ZERO ACTIVE INCIDENTS DETECTED // WORKFLOW BOUNDARIES COMPLIANT //"}
           </div>
         ) : (
           incidents.map((inc) => {

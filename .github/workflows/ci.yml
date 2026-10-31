@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  ACTIONS_RUNNER_FORCE_NODE24: "true"
+
 jobs:
   backend-quality-gate:
     name: Backend Tests & Invariant Verification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,7 +34,7 @@ jobs:
 
   frontend-quality-gate:
     name: Frontend Next.js Build & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -39,15 +42,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Node dependencies
         run: npm ci
+
+      - name: Run ESLint Check
+        run: npm run lint
 
       - name: Build Next.js Production App
         run: npm run build
@@ -57,7 +63,7 @@ jobs:
 
   docker-verification:
     name: Multi-Stage Container Integrity Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [backend-quality-gate, frontend-quality-gate]
     steps:
       - name: Checkout repository
