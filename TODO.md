@@ -92,8 +92,8 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 ### Phase 9: Testing, Verification & Hackathon Delivery
 - [x] Unit tests for Policy Engine (least privilege, verbal approval denial, valid approval override)
 - [x] End-to-end tests for all 7 scenarios verifying expected security decisions
-- [x] Verify zero regression across 13 test cases in `pytest`
-- [ ] Add tests for agent revocation mid-workflow
-- [ ] Add tests for malformed JSON and unauthorized tool calls
+- [x] Verify zero regression across 27 test cases in `pytest`
+- [x] Add tests for agent revocation mid-workflow
+- [x] Add tests for malformed JSON and unauthorized tool calls
 - [ ] Record a 3-minute video walkthrough demonstrating legitimate vs. blocked adversarial scenarios
 - [ ] Prepare hackathon slide deck highlighting problem statement, architecture, and threat model
