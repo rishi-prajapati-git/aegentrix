@@ -59,8 +59,8 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] In-memory structured Audit Store with search and filter capabilities (`backend/app/services/audit_store.py`)
 - [x] Secret sanitization for audit event payloads and metadata
 - [x] Incident store tracking active alerts and affected agents
-- [ ] Implement SQLite persistent repository (SQLAlchemy or aiosqlite) for audit durability across restarts
-- [ ] Add export endpoint to download full audit history as JSON/CSV
+- [x] Implement PostgreSQL persistent repository with SQLAlchemy (\ackend/app/db/session.py\ & \models.py\)
+- [x] Add export endpoint to download full audit history as JSON/CSV (/api/events/export)
 
 ---
 
@@ -79,13 +79,13 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 ---
 
 ### Phase 8: Frontend Security Operations Center (SOC) Dashboard
-- [ ] Create Next.js App Router layout with a modern dark cybersecurity theme
-- [ ] **Overview Page:** Real-time KPI summary cards (Total Requests, Allowed, Denied, Flagged Signals, Active Incidents)
-- [ ] **Agent Registry Card View:** Inspect synthetic agents, assigned trust tiers, and capability matrices
-- [ ] **Interactive Scenario Runner:** One-click launchpad to trigger all 7 scenarios with live execution feedback
-- [ ] **Audit Timeline Component:** Expandable stream of events displaying timestamp, caller chain, decision, and reason codes
-- [ ] **Incident Graph / Chain Viewer:** Visual timeline highlighting correlated events in multi-stage attacks
-- [ ] **Policy Viewer & Admin Approval Modal:** View active rules and manually issue time-bounded approval tokens
+- [x] Create Next.js App Router layout with a modern dark cybersecurity theme (rontend/app/globals.css, layout.tsx)
+- [x] **Overview Page:** Real-time KPI summary cards (Total Requests, Allowed, Denied, Flagged Signals, Active Incidents)
+- [x] **Agent Registry Card View:** Inspect synthetic agents, assigned trust tiers, and capability matrices
+- [x] **Interactive Scenario Runner:** One-click launchpad to trigger all 7 scenarios with live execution feedback
+- [x] **Audit Timeline Component:** Expandable stream of events displaying timestamp, caller chain, decision, and reason codes
+- [x] **Incident Graph / Chain Viewer:** Visual timeline highlighting correlated events in multi-stage attacks
+- [x] **Policy Viewer & Admin Approval Modal:** View active rules and manually issue time-bounded approval tokens
 
 ---
 

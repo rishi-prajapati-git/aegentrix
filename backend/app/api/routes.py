@@ -138,6 +138,25 @@ def get_events(
     response.headers["X-Total-Count"] = str(total_count)
     return page
 
+
+@api_router.get("/api/events/export")
+def export_events(format: str = Query("json", pattern="^(json|csv)$")):
+    """Exports full audit history as structured JSON or CSV (Task 6.2)."""
+    if format == "csv":
+        csv_data = audit_store.export_events_csv()
+        return Response(
+            content=csv_data,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=aegentrix_audit_events.csv"}
+        )
+    else:
+        json_data = audit_store.export_events_json()
+        return Response(
+            content=json_data,
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=aegentrix_audit_events.json"}
+        )
+
 @api_router.get("/api/events/paginated", response_model=PaginatedAuditEventsResponse)
 def get_events_paginated(
     workflow_id: Optional[str] = Query(None),

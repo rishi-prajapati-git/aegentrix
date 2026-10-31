@@ -1,3 +1,7 @@
+import io
+import csv
+import json
+import logging
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone
 import uuid
@@ -5,6 +9,16 @@ import base64
 
 from ..models.audit import AuditEvent, Incident, PaginatedAuditEventsResponse
 from ..core.security import sanitize_payload
+from ..db.session import SessionLocal, init_db
+from ..db.models import AuditEventDB, IncidentDB
+
+logger = logging.getLogger(__name__)
+
+# Ensure tables are created
+try:
+    init_db()
+except Exception as e:
+    logger.warning(f"Database table initialization warning: {e}")
 
 def encode_cursor(timestamp: str, event_id: str) -> str:
     """Encodes timestamp and event_id into a URL-safe opaque cursor token."""
@@ -30,6 +44,55 @@ class AuditStore:
     def __init__(self):
         self._events: List[AuditEvent] = []
         self._incidents: List[Incident] = []
+        self._load_from_db_on_startup()
+
+    def _load_from_db_on_startup(self):
+        """Pre-loads existing records from persistent database into in-memory cache if available."""
+        if not SessionLocal:
+            return
+        try:
+            with SessionLocal() as db:
+                db_events = db.query(AuditEventDB).order_by(AuditEventDB.timestamp.asc()).all()
+                for row in db_events:
+                    ev = AuditEvent(
+                        event_id=row.event_id,
+                        timestamp=row.timestamp,
+                        workflow_id=row.workflow_id,
+                        correlation_id=row.correlation_id,
+                        source_agent_id=row.source_agent_id,
+                        operation=row.operation,
+                        target_resource_or_recipient=row.target_resource_or_recipient,
+                        payload_classification=row.payload_classification or "CONFIDENTIAL",
+                        payload_size_bytes=row.payload_size_bytes or 0,
+                        decision=row.decision,
+                        reason_code=row.reason_code,
+                        reason_description=row.reason_description,
+                        matched_policy_id=row.matched_policy_id,
+                        provenance=row.provenance_json or {},
+                        advisory_model_analysis=row.advisory_analysis_json,
+                        sanitized_metadata=row.sanitized_metadata_json or {}
+                    )
+                    self._events.append(ev)
+
+                db_incidents = db.query(IncidentDB).order_by(IncidentDB.timestamp.asc()).all()
+                for row in db_incidents:
+                    inc = Incident(
+                        incident_id=row.incident_id,
+                        timestamp=row.timestamp,
+                        severity=row.severity,
+                        rule_name=row.rule_name,
+                        description=row.description,
+                        workflow_id=row.workflow_id,
+                        correlated_event_ids=row.correlated_event_ids_json or [],
+                        affected_agents=row.affected_agents_json or [],
+                        status=row.status or "OPEN",
+                        updated_at=row.updated_at,
+                        resolved_by=row.resolved_by,
+                        resolution_notes=row.resolution_notes
+                    )
+                    self._incidents.append(inc)
+        except Exception as e:
+            logger.debug(f"Could not preload audit store from database: {e}")
 
     def record_event(
         self,
@@ -55,6 +118,9 @@ class AuditStore:
         if size_bytes == 0 and raw_metadata:
             size_bytes = int(raw_metadata.get("payload_size_bytes") or raw_metadata.get("bytes_transferred") or raw_metadata.get("size_bytes") or 0)
 
+        prov_dict = provenance if isinstance(provenance, dict) else (provenance.model_dump() if hasattr(provenance, "model_dump") else getattr(provenance, '__dict__', {}))
+        adv_dict = advisory_model_analysis if isinstance(advisory_model_analysis, dict) else (advisory_model_analysis.model_dump() if hasattr(advisory_model_analysis, "model_dump") else None)
+
         event = AuditEvent(
             event_id=event_id,
             timestamp=now_str,
@@ -74,6 +140,34 @@ class AuditStore:
             sanitized_metadata=sanitized_meta
         )
         self._events.append(event)
+
+        # Persist to database (PostgreSQL / SQLite)
+        if SessionLocal:
+            try:
+                with SessionLocal() as db:
+                    db_event = AuditEventDB(
+                        event_id=event_id,
+                        timestamp=now_str,
+                        workflow_id=workflow_id,
+                        correlation_id=correlation_id,
+                        source_agent_id=source_agent_id,
+                        operation=operation,
+                        target_resource_or_recipient=target_resource_or_recipient,
+                        payload_classification="CONFIDENTIAL",
+                        payload_size_bytes=size_bytes,
+                        decision=decision,
+                        reason_code=reason_code,
+                        reason_description=reason_description,
+                        matched_policy_id=matched_policy_id,
+                        provenance_json=prov_dict,
+                        advisory_analysis_json=adv_dict,
+                        sanitized_metadata_json=sanitized_meta
+                    )
+                    db.add(db_event)
+                    db.commit()
+            except Exception as e:
+                logger.debug(f"Failed to persist event to database: {e}")
+
         return event
 
     def record_incident(
@@ -100,6 +194,27 @@ class AuditStore:
             status="OPEN"
         )
         self._incidents.append(incident)
+
+        # Persist to database
+        if SessionLocal:
+            try:
+                with SessionLocal() as db:
+                    db_inc = IncidentDB(
+                        incident_id=incident_id,
+                        timestamp=now_str,
+                        severity=severity,
+                        rule_name=rule_name,
+                        description=description,
+                        workflow_id=workflow_id,
+                        correlated_event_ids_json=correlated_event_ids,
+                        affected_agents_json=affected_agents,
+                        status="OPEN"
+                    )
+                    db.add(db_inc)
+                    db.commit()
+            except Exception as e:
+                logger.debug(f"Failed to persist incident to database: {e}")
+
         return incident
 
     def get_incident(self, incident_id: str) -> Optional[Incident]:
@@ -128,6 +243,21 @@ class AuditStore:
                     inc.resolved_by = actor
                 if notes:
                     inc.resolution_notes = notes
+
+                # Update in DB
+                if SessionLocal:
+                    try:
+                        with SessionLocal() as db:
+                            db_inc = db.query(IncidentDB).filter(IncidentDB.incident_id == incident_id).first()
+                            if db_inc:
+                                db_inc.status = status_clean
+                                db_inc.updated_at = inc.updated_at
+                                db_inc.resolved_by = actor
+                                db_inc.resolution_notes = notes
+                                db.commit()
+                    except Exception as e:
+                        logger.debug(f"Failed to update incident in database: {e}")
+
                 return inc
         return None
 
@@ -157,13 +287,6 @@ class AuditStore:
         cursor: Optional[str] = None,
         direction: str = "next"
     ) -> tuple[List[AuditEvent], Optional[str], Optional[str], bool, int]:
-        """
-        Cursor-based pagination for large audit log volumes.
-        Events are returned in reverse-chronological order (newest first).
-        
-        Returns:
-            (page_events, next_cursor, prev_cursor, has_more, total_count)
-        """
         filtered = self._events
         if workflow_id:
             filtered = [e for e in filtered if e.workflow_id == workflow_id]
@@ -176,7 +299,6 @@ class AuditStore:
         if total_count == 0:
             return [], None, None, False, 0
 
-        # Reverse chronological order (newest first)
         sorted_events = list(reversed(filtered))
         limit = max(1, min(limit, 200))
 
@@ -239,9 +361,48 @@ class AuditStore:
             "open_incidents_count": open_incidents
         }
 
+    def export_events_json(self) -> str:
+        """Exports all recorded audit events as formatted JSON."""
+        events_dicts = [e.model_dump() for e in self._events]
+        return json.dumps(events_dicts, indent=2)
+
+    def export_events_csv(self) -> str:
+        """Exports all recorded audit events as CSV."""
+        output = io.StringIO()
+        fieldnames = [
+            "event_id", "timestamp", "workflow_id", "correlation_id",
+            "source_agent_id", "operation", "target_resource_or_recipient",
+            "decision", "reason_code", "payload_size_bytes", "matched_policy_id"
+        ]
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        for e in self._events:
+            writer.writerow({
+                "event_id": e.event_id,
+                "timestamp": e.timestamp,
+                "workflow_id": e.workflow_id,
+                "correlation_id": e.correlation_id,
+                "source_agent_id": e.source_agent_id,
+                "operation": e.operation,
+                "target_resource_or_recipient": e.target_resource_or_recipient,
+                "decision": e.decision,
+                "reason_code": e.reason_code,
+                "payload_size_bytes": e.payload_size_bytes,
+                "matched_policy_id": e.matched_policy_id or ""
+            })
+        return output.getvalue()
+
     def clear(self):
-        """Clears memory for testing purposes."""
+        """Clears memory and database for testing purposes."""
         self._events.clear()
         self._incidents.clear()
+        if SessionLocal:
+            try:
+                with SessionLocal() as db:
+                    db.query(AuditEventDB).delete()
+                    db.query(IncidentDB).delete()
+                    db.commit()
+            except Exception as e:
+                logger.debug(f"Failed to clear database tables: {e}")
 
 audit_store = AuditStore()

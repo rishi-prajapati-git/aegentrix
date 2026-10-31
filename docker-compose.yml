@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegentrix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aegentrix_db
+      POSTGRES_USER: aegentrix_user
+      POSTGRES_PASSWORD: aegentrix_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegentrix_user -d aegentrix_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: aegentrix-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - DATABASE_URL=postgresql://aegentrix_user:aegentrix_password@postgres:5432/aegentrix_db
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - APPROVAL_SECRET_KEY=aegentrix-super-secret-hmac-key-2026
+      - AI_ANALYSIS_ENABLED=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: aegentrix-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
