@@ -9,13 +9,17 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# CORS configuration
+# Robust CORS configuration for Vercel, localhost, and custom domains
+origins = settings.allowed_origins
+has_wildcard = "*" in origins or origins == ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins if settings.allowed_origins != ["*"] else ["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if has_wildcard else origins,
+    allow_credentials=not has_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app" if not has_wildcard else None,
 )
 
 app.include_router(api_router)
