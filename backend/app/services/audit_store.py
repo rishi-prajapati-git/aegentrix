@@ -1,8 +1,30 @@
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone
 import uuid
-from ..models.audit import AuditEvent, Incident
+import base64
+
+from ..models.audit import AuditEvent, Incident, PaginatedAuditEventsResponse
 from ..core.security import sanitize_payload
+
+def encode_cursor(timestamp: str, event_id: str) -> str:
+    """Encodes timestamp and event_id into a URL-safe opaque cursor token."""
+    payload = f"{timestamp}|{event_id}"
+    return base64.urlsafe_b64encode(payload.encode("utf-8")).decode("utf-8")
+
+def decode_cursor(cursor: str) -> tuple[Optional[str], Optional[str]]:
+    """Decodes cursor token back into (timestamp, event_id). Supports direct event IDs."""
+    if not cursor:
+        return None, None
+    if cursor.startswith("evt_"):
+        return None, cursor
+    try:
+        raw = base64.urlsafe_b64decode(cursor.encode("utf-8")).decode("utf-8")
+        if "|" in raw:
+            parts = raw.split("|", 1)
+            return parts[0], parts[1]
+        return None, raw
+    except Exception:
+        return None, cursor
 
 class AuditStore:
     def __init__(self):
@@ -114,8 +136,34 @@ class AuditStore:
         workflow_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         decision: Optional[str] = None,
-        limit: int = 50
+        limit: int = 50,
+        cursor: Optional[str] = None
     ) -> List[AuditEvent]:
+        events, _, _, _, _ = self.get_events_paginated(
+            workflow_id=workflow_id,
+            agent_id=agent_id,
+            decision=decision,
+            limit=limit,
+            cursor=cursor
+        )
+        return events
+
+    def get_events_paginated(
+        self,
+        workflow_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        decision: Optional[str] = None,
+        limit: int = 50,
+        cursor: Optional[str] = None,
+        direction: str = "next"
+    ) -> tuple[List[AuditEvent], Optional[str], Optional[str], bool, int]:
+        """
+        Cursor-based pagination for large audit log volumes.
+        Events are returned in reverse-chronological order (newest first).
+        
+        Returns:
+            (page_events, next_cursor, prev_cursor, has_more, total_count)
+        """
         filtered = self._events
         if workflow_id:
             filtered = [e for e in filtered if e.workflow_id == workflow_id]
@@ -123,7 +171,53 @@ class AuditStore:
             filtered = [e for e in filtered if e.source_agent_id == agent_id]
         if decision:
             filtered = [e for e in filtered if e.decision == decision]
-        return list(reversed(filtered[-limit:]))
+
+        total_count = len(filtered)
+        if total_count == 0:
+            return [], None, None, False, 0
+
+        # Reverse chronological order (newest first)
+        sorted_events = list(reversed(filtered))
+        limit = max(1, min(limit, 200))
+
+        start_idx = 0
+        if cursor:
+            _, target_event_id = decode_cursor(cursor)
+            cursor_idx = -1
+            for idx, ev in enumerate(sorted_events):
+                if ev.event_id == target_event_id:
+                    cursor_idx = idx
+                    break
+
+            if cursor_idx != -1:
+                if direction == "prev":
+                    start_idx = max(0, cursor_idx - limit)
+                    end_idx = cursor_idx
+                    page = sorted_events[start_idx:end_idx]
+                    has_more = start_idx > 0
+                    next_cur = encode_cursor(page[-1].timestamp, page[-1].event_id) if page and cursor_idx < len(sorted_events) else None
+                    prev_cur = encode_cursor(page[0].timestamp, page[0].event_id) if has_more and page else None
+                    return page, next_cur, prev_cur, has_more, total_count
+                else:
+                    start_idx = cursor_idx + 1
+            else:
+                start_idx = 0
+
+        end_idx = start_idx + limit
+        page = sorted_events[start_idx:end_idx]
+        has_more = end_idx < len(sorted_events)
+
+        next_cur = None
+        if has_more and page:
+            last_ev = page[-1]
+            next_cur = encode_cursor(last_ev.timestamp, last_ev.event_id)
+
+        prev_cur = None
+        if start_idx > 0 and page:
+            first_ev = page[0]
+            prev_cur = encode_cursor(first_ev.timestamp, first_ev.event_id)
+
+        return page, next_cur, prev_cur, has_more, total_count
 
     def get_incidents(self, limit: int = 20) -> List[Incident]:
         return list(reversed(self._incidents[-limit:]))

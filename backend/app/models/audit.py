@@ -33,6 +33,14 @@ class AuditEvent(BaseModel):
     advisory_model_analysis: Optional[AdvisoryModelAnalysis] = None
     sanitized_metadata: Dict[str, Any] = Field(default_factory=dict)
 
+class PaginatedAuditEventsResponse(BaseModel):
+    events: List[AuditEvent] = Field(default_factory=list, description="Page of audit event records")
+    next_cursor: Optional[str] = Field(None, description="Opaque cursor token to fetch the next page of events")
+    prev_cursor: Optional[str] = Field(None, description="Opaque cursor token to fetch the previous page of events")
+    has_more: bool = Field(False, description="Whether additional events exist past this page")
+    total_count: int = Field(default=0, description="Total count of events matching current filters")
+    limit: int = Field(default=50, description="Page size limit applied")
+
 class Incident(BaseModel):
     incident_id: str
     timestamp: str

@@ -74,7 +74,7 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] Implement reproducible Scenario 7 (Advisory Model Unavailable / Fail-Safe)
 - [x] FastAPI routes for health, agents, policies, scenarios, events, incidents, and approvals
 - [ ] Add administrative authentication (API key or JWT header) for the `/api/approvals` endpoint
-- [ ] Add pagination cursor for large audit log volumes
+- [x] Add pagination cursor for large audit log volumes
 
 ---
 
