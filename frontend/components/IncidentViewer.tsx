@@ -70,18 +70,18 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
             return (
               <div
                 key={inc.incident_id}
-                className={`p-5 rounded-[30px] transition-all shadow-[0_12px_24px_-6px_rgba(56,49,57,0.08),inset_3px_3px_6px_rgba(255,255,255,0.9),inset_-3px_-3px_6px_rgba(56,49,57,0.08)] ${
+                className={`p-4 sm:p-5 rounded-[30px] transition-all overflow-hidden shadow-[0_12px_24px_-6px_rgba(56,49,57,0.08),inset_3px_3px_6px_rgba(255,255,255,0.9),inset_-3px_-3px_6px_rgba(56,49,57,0.08)] ${
                   isCritical
                     ? "bg-[#fffdf7] border-2 border-[#f6a3ca]"
                     : "bg-[#fffdf7]"
                 }`}
               >
-                <div className="flex items-start justify-between flex-wrap gap-3 pb-3 border-b border-[#383139]/10">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="recessed-dot recessed-dot-orange"></span>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-[#383139]/10">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="recessed-dot recessed-dot-orange shrink-0"></span>
                       <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
                           isCritical
                             ? "bg-[#f6a3ca] text-[#78234e]"
                             : "bg-[#f9e7a8] text-[#6b5816]"
@@ -89,16 +89,16 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
                       >
                         {inc.severity} RISK
                       </span>
-                      <span className="text-sm font-bold text-[#383139]">
+                      <span className="text-xs sm:text-sm font-bold text-[#383139] break-words break-all font-mono leading-tight">
                         {inc.rule_name}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-[#48404b] mt-2 font-medium">
+                    <p className="text-xs sm:text-sm text-[#48404b] mt-2 font-medium leading-relaxed break-words">
                       {inc.description}
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 shrink-0 self-start sm:self-auto">
                     <span
                       className={`text-xs px-3 py-1 rounded-full font-bold uppercase ${
                         isOpen
@@ -133,29 +133,43 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
                 </div>
 
                 {/* Correlated Event Sequence Flow */}
-                <div className="mt-3 pt-1">
-                  <span className="text-[#48404b] text-xs font-bold uppercase block mb-1.5">
+                <div className="mt-3 pt-1 space-y-2.5">
+                  <span className="text-[#48404b] text-xs font-bold uppercase block">
                     Correlated Event Sequence ({inc.correlated_event_ids.length} Steps):
                   </span>
-                  <div className="flex items-center flex-wrap gap-2 mt-1">
+                  <div className="flex items-center flex-wrap gap-1.5">
                     {inc.correlated_event_ids.map((evId, idx) => (
                       <React.Fragment key={evId}>
-                        <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#f1f2fa] text-[#383139] shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1),0_1px_0_rgba(255,255,255,0.9)]">
+                        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-[#f1f2fa] text-[#383139] shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1),0_1px_0_rgba(255,255,255,0.9)] break-all">
                           {evId}
                         </span>
                         {idx < inc.correlated_event_ids.length - 1 && (
-                          <ArrowRight className="w-3.5 h-3.5 text-[#383139]" />
+                          <ArrowRight className="w-3.5 h-3.5 text-[#383139] shrink-0" />
                         )}
                       </React.Fragment>
                     ))}
                   </div>
 
-                  <div className="mt-3 flex items-center space-x-3 text-xs text-[#48404b] font-medium">
-                    <span>Workflow: <strong className="text-[#383139]">{inc.workflow_id}</strong></span>
-                    <span>•</span>
-                    <span>Targets: <strong className="text-[#383139]">{inc.affected_agents.join(", ")}</strong></span>
-                    <span>•</span>
-                    <span>Logged: {new Date(inc.timestamp).toLocaleTimeString()}</span>
+                  {/* Clean, responsive metadata card grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-[#383139]/10 text-xs">
+                    <div className="min-w-0 bg-white/70 p-2 rounded-[14px] shadow-sm">
+                      <span className="text-[10px] font-bold uppercase text-[#48404b]/80 block">Workflow</span>
+                      <span className="font-mono font-bold text-[#383139] text-xs truncate block" title={inc.workflow_id}>
+                        {inc.workflow_id}
+                      </span>
+                    </div>
+                    <div className="min-w-0 bg-white/70 p-2 rounded-[14px] shadow-sm">
+                      <span className="text-[10px] font-bold uppercase text-[#48404b]/80 block">Targets</span>
+                      <span className="font-mono font-bold text-[#383139] text-xs truncate block" title={inc.affected_agents.join(", ")}>
+                        {inc.affected_agents.join(", ") || "None"}
+                      </span>
+                    </div>
+                    <div className="min-w-0 bg-white/70 p-2 rounded-[14px] shadow-sm">
+                      <span className="text-[10px] font-bold uppercase text-[#48404b]/80 block">Logged</span>
+                      <span className="font-bold text-[#383139] text-xs block">
+                        {new Date(inc.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

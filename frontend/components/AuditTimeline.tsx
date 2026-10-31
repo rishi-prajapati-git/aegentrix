@@ -317,30 +317,37 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
                       )}
                     </div>
 
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center flex-wrap gap-2">
-                        <span className="font-extrabold text-[#383139] text-sm">
+                        <span className="font-extrabold text-[#383139] text-sm shrink-0">
                           {ev.operation}
                         </span>
-                        <span className="text-[#48404b] font-medium">→</span>
-                        <span className="text-[#48404b] font-bold text-xs bg-white/70 px-2 py-0.5 rounded-full shadow-sm">
+                        <span className="text-[#48404b] font-medium shrink-0">→</span>
+                        <span
+                          className="text-[#48404b] font-bold text-xs bg-white/70 px-2 py-0.5 rounded-full shadow-sm max-w-[220px] sm:max-w-xs truncate inline-block align-middle"
+                          title={ev.target_resource_or_recipient}
+                        >
                           {ev.target_resource_or_recipient}
                         </span>
 
                         {ev.advisory_model_analysis && ev.advisory_model_analysis.flags.length > 0 && (
-                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-[#ded0f9] text-[#383139] text-[11px] font-bold shadow-sm">
-                            <Radio className="w-3 h-3 text-[#383139]" />
-                            <span>AI Signal: {ev.advisory_model_analysis.flags.join(", ")}</span>
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-[#ded0f9] text-[#383139] text-[11px] font-bold shadow-sm max-w-full truncate">
+                            <Radio className="w-3 h-3 text-[#383139] shrink-0" />
+                            <span className="truncate">AI Signal: {ev.advisory_model_analysis.flags.join(", ")}</span>
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center space-x-2 mt-1.5 text-xs text-[#48404b]">
-                        <span className="font-semibold">Src: {ev.source_agent_id}</span>
+                      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 text-xs text-[#48404b]">
+                        <span className="font-semibold truncate max-w-[150px] inline-block" title={ev.source_agent_id}>
+                          Src: {ev.source_agent_id}
+                        </span>
                         <span>•</span>
                         <span>{new Date(ev.timestamp).toLocaleTimeString()}</span>
                         <span>•</span>
-                        <span className="font-mono text-[11px] text-[#48404b]/80">{ev.event_id}</span>
+                        <span className="font-mono text-[11px] text-[#48404b]/80 truncate max-w-[110px] inline-block" title={ev.event_id}>
+                          {ev.event_id}
+                        </span>
                       </div>
                     </div>
                   </div>
