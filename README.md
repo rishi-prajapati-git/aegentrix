@@ -3,6 +3,7 @@
 > **"Trust no agent blindly. Govern every action."**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI/CD Pipeline](https://github.com/rishi-prajapati-git/aegentrix/actions/workflows/ci.yml/badge.svg)](https://github.com/rishi-prajapati-git/aegentrix/actions)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-green.svg)](https://fastapi.tiangolo.com/)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)]()
