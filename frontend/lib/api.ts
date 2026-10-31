@@ -155,12 +155,22 @@ export async function fetchIncidents(): Promise<Incident[]> {
 }
 
 export async function updateIncidentStatus(incidentId: string, status: string, notes?: string): Promise<any> {
-  const res = await fetch(`${BASE_URL}/api/incidents/${encodeURIComponent(incidentId)}/status`, {
-    method: "POST",
+  let res = await fetch(`${BASE_URL}/api/incidents/${encodeURIComponent(incidentId)}/status`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status, actor: "sec-admin", notes }),
   });
-  if (!res.ok) throw new Error("Failed to update incident status");
+  if (!res.ok) {
+    res = await fetch(`${BASE_URL}/api/incidents/${encodeURIComponent(incidentId)}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, actor: "sec-admin", notes }),
+    });
+  }
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Failed to update incident status: ${res.status} ${errText}`);
+  }
   return res.json();
 }
 

@@ -11,14 +11,16 @@ interface IncidentViewerProps {
 
 export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRefresh }) => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
+    setErrorMsg(null);
     try {
       await updateIncidentStatus(id, newStatus, `Updated via Claymorphism SOC interface to ${newStatus}`);
       onRefresh();
-    } catch (err) {
-      alert("Failed to update incident status");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to update incident status");
     } finally {
       setUpdatingId(null);
     }
@@ -46,12 +48,27 @@ export const IncidentViewer: React.FC<IncidentViewerProps> = ({ incidents, onRef
         </div>
 
         <button
-          onClick={onRefresh}
+          onClick={() => {
+            setErrorMsg(null);
+            onRefresh();
+          }}
           className="clay-btn clay-btn-cream px-4 py-2 text-xs font-bold text-[#383139] self-start sm:self-center"
         >
           Poll Incidents
         </button>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 rounded-[22px] bg-[#f6a3ca]/30 border border-[#f6a3ca] text-[#78234e] text-xs font-bold flex items-center justify-between shadow-sm">
+          <span>{errorMsg}</span>
+          <button
+            onClick={() => setErrorMsg(null)}
+            className="text-[#78234e] font-extrabold hover:opacity-80 px-2 py-0.5"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Incidents List */}
       <div className="space-y-3">

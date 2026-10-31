@@ -200,10 +200,18 @@ def get_incident(incident_id: str):
         raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
     return inc
 
-@api_router.patch("/api/incidents/{incident_id}/status", response_model=Incident)
+@api_router.patch("/api/incidents/{incident_id:path}/status", response_model=Incident)
+@api_router.post("/api/incidents/{incident_id:path}/status", response_model=Incident)
 def update_incident_status(incident_id: str, req: UpdateIncidentStatusRequest):
+    import urllib.parse
+    clean_id = urllib.parse.unquote(incident_id)
     try:
         updated = audit_store.update_incident_status(
+            incident_id=clean_id,
+            status=req.status,
+            actor=req.actor,
+            notes=req.notes
+        ) or audit_store.update_incident_status(
             incident_id=incident_id,
             status=req.status,
             actor=req.actor,
