@@ -1,0 +1,33 @@
+from typing import Optional, Dict, Any, List
+from pydantic import BaseModel, Field
+from .audit import AuditEvent, Incident
+
+class ScenarioInfo(BaseModel):
+    scenario_id: str
+    title: str
+    description: str
+    category: str # "BENIGN", "ADVERSARIAL", "SYSTEM"
+    expected_outcome: str
+
+class ScenarioRunRequest(BaseModel):
+    scenario_id: str
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+class ScenarioRunResponse(BaseModel):
+    scenario_id: str
+    workflow_id: str
+    status: str
+    overall_decision: str
+    summary: str
+    events_generated: List[AuditEvent]
+    incidents_triggered: List[Incident]
+    execution_time_ms: float
+
+class CreateApprovalRequest(BaseModel):
+    actor: str
+    target_agent_id: str
+    scope_resource: str
+    operation: str
+    destination: Optional[str] = None
+    duration_minutes: int = 60
+    metadata: Dict[str, Any] = Field(default_factory=dict)
