@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { AuditEvent } from "../lib/api";
-import { Search, Filter, Download, Plus, Minus, Shield, Check, Clock, Radio } from "lucide-react";
+import { Search, Filter, FileText, FileDown, Plus, Minus, Radio } from "lucide-react";
 
 interface AuditTimelineProps {
   events: AuditEvent[];
@@ -65,22 +65,153 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
     }
   };
 
-  const handleExport = (format: "csv" | "json") => {
-    const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/events/export?format=${format}`;
-    window.open(url, "_blank");
+  const handleExportPDF = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow popups to export PDF");
+      return;
+    }
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>AEGENTRIX Audit Trail Report</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 25px; color: #181e22; background: #fff; }
+            h1 { font-size: 22px; margin-bottom: 2px; color: #181e22; }
+            .subtitle { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+            .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            th { background: #f1f5f9; text-align: left; padding: 8px; border-bottom: 2px solid #cbd5e1; font-weight: 600; }
+            td { padding: 7px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+            .badge { display: inline-block; padding: 2px 6px; border-radius: 9999px; font-weight: 700; font-size: 9px; }
+            .badge-allow { background: #dcfce7; color: #166534; }
+            .badge-deny { background: #fee2e2; color: #991b1b; }
+            .badge-req { background: #fef3c7; color: #92400e; }
+            @media print {
+              body { padding: 0; }
+              @page { margin: 1cm; size: landscape; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>AEGENTRIX // Cryptographic Audit Report</h1>
+          <div class="subtitle">Generated on ${new Date().toLocaleString()} • Multi-Agent Governance Platform</div>
+          <div class="meta-box">
+            <strong>Total Filtered Events:</strong> ${filteredEvents.length} | 
+            <strong>Policy Gating:</strong> Active Zero-Bypass PEP Engine
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Event ID</th>
+                <th>Source Agent</th>
+                <th>Operation</th>
+                <th>Target Resource</th>
+                <th>Decision</th>
+                <th>Reason Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredEvents.map(ev => `
+                <tr>
+                  <td>${new Date(ev.timestamp).toLocaleTimeString()}</td>
+                  <td><code>${ev.event_id}</code></td>
+                  <td>${ev.source_agent_id}</td>
+                  <td><strong>${ev.operation}</strong></td>
+                  <td>${ev.target_resource_or_recipient}</td>
+                  <td>
+                    <span class="badge ${ev.decision === "ALLOW" ? "badge-allow" : ev.decision === "DENY" ? "badge-deny" : "badge-req"}">
+                      ${ev.decision}
+                    </span>
+                  </td>
+                  <td>${ev.reason_description || ev.reason_code}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
+  const handleExportWord = () => {
+    const htmlContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset="utf-8">
+          <title>AEGENTRIX Audit Trail</title>
+          <style>
+            body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #333333; margin: 20px; }
+            h1 { color: #181e22; font-size: 16pt; margin-bottom: 2pt; }
+            p.meta { color: #666666; font-size: 9.5pt; margin-top: 0; margin-bottom: 14pt; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10pt; }
+            th { background-color: #f1f2fa; border: 1px solid #cbd5e1; padding: 6pt; text-align: left; font-size: 9.5pt; }
+            td { border: 1px solid #e2e8f0; padding: 6pt; font-size: 9pt; vertical-align: top; }
+          </style>
+        </head>
+        <body>
+          <h1>AEGENTRIX Multi-Agent Security Audit Report</h1>
+          <p class="meta">Export Timestamp: ${new Date().toISOString()} | Total Events: ${filteredEvents.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Event ID</th>
+                <th>Timestamp</th>
+                <th>Source Agent</th>
+                <th>Operation</th>
+                <th>Target Resource</th>
+                <th>Decision</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredEvents.map(ev => `
+                <tr>
+                  <td>${ev.event_id}</td>
+                  <td>${new Date(ev.timestamp).toLocaleString()}</td>
+                  <td>${ev.source_agent_id}</td>
+                  <td>${ev.operation}</td>
+                  <td>${ev.target_resource_or_recipient}</td>
+                  <td><strong>${ev.decision}</strong></td>
+                  <td>${ev.reason_description || ev.reason_code}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    const blob = new Blob(['\ufeff', htmlContent], {
+      type: 'application/msword;charset=utf-8'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `aegentrix_audit_report_${new Date().toISOString().slice(0, 10)}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-4">
       {/* Panel Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#48404b]">
               Bay 03 // Audit Stream
             </span>
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#ded0f9] text-[#383139]">
-              LIVE RECORD
+              LIVE
             </span>
           </div>
           <h2 className="text-2xl font-bold text-[#383139] mt-0.5">
@@ -91,29 +222,31 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
           </p>
         </div>
 
-        {/* Action Controls */}
+        {/* Action Controls with PDF & Word Exports */}
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => handleExport("json")}
-            className="clay-btn clay-btn-cream px-3.5 py-2 text-xs font-bold text-[#383139] flex items-center space-x-1.5"
+            onClick={handleExportPDF}
+            className="clay-btn clay-btn-cream px-3 sm:px-3.5 py-1.5 text-xs font-bold text-[#383139] flex items-center space-x-1.5 shadow-sm"
+            title="Export formatted PDF audit report"
           >
-            <Download className="w-3.5 h-3.5 text-[#383139]" />
-            <span>JSON</span>
+            <FileText className="w-3.5 h-3.5 text-[#f6a3ca]" />
+            <span>PDF</span>
           </button>
           <button
-            onClick={() => handleExport("csv")}
-            className="clay-btn clay-btn-cream px-3.5 py-2 text-xs font-bold text-[#383139] flex items-center space-x-1.5"
+            onClick={handleExportWord}
+            className="clay-btn clay-btn-cream px-3 sm:px-3.5 py-1.5 text-xs font-bold text-[#383139] flex items-center space-x-1.5 shadow-sm"
+            title="Download Microsoft Word .doc report"
           >
-            <Download className="w-3.5 h-3.5 text-[#383139]" />
-            <span>CSV</span>
+            <FileDown className="w-3.5 h-3.5 text-[#383139]" />
+            <span>Word</span>
           </button>
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="clay-btn clay-btn-lavender px-4 py-2 text-xs font-bold text-[#383139] flex items-center space-x-1.5"
+            className="clay-btn clay-btn-lavender px-3.5 sm:px-4 py-1.5 text-xs font-bold text-[#383139] flex items-center space-x-1.5"
           >
             <span
-              className={`recessed-dot ${isLoading ? "recessed-dot-orange" : "recessed-dot-green"}`}
+              className={`recessed-dot w-2 h-2 ${isLoading ? "recessed-dot-orange animate-spin" : "recessed-dot-green"}`}
             ></span>
             <span>{isLoading ? "Syncing..." : "Refresh"}</span>
           </button>
@@ -123,13 +256,13 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
       {/* Recessed Filter Sub-Bay */}
       <div className="clay-recessed p-2 rounded-[25px] flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#48404b]" />
+          <Search className="w-4 h-4 absolute left-3.5 top-2.5 text-[#48404b]" />
           <input
             type="text"
             placeholder="Search telemetry by event ID, agent, resource URI, reason..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white/70 rounded-full text-xs sm:text-sm text-[#383139] placeholder-[#48404b]/60 shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
+            className="w-full pl-10 pr-4 py-1.5 sm:py-2 bg-white/70 rounded-full text-xs sm:text-sm text-[#383139] placeholder-[#48404b]/60 shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
           />
         </div>
 
@@ -138,7 +271,7 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ events, onRefresh,
           <select
             value={decisionFilter}
             onChange={(e) => setDecisionFilter(e.target.value)}
-            className="bg-white/80 rounded-full px-4 py-2 text-xs sm:text-sm font-bold text-[#383139] shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
+            className="bg-white/80 rounded-full px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-[#383139] shadow-[inset_1px_1px_2px_rgba(56,49,57,0.1)] focus:outline-none focus:ring-2 focus:ring-[#383139]"
           >
             <option value="ALL">All Events ({events.length})</option>
             <option value="ALLOW">Allow Only</option>
