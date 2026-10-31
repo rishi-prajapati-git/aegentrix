@@ -31,3 +31,12 @@ class CreateApprovalRequest(BaseModel):
     destination: Optional[str] = None
     duration_minutes: int = 60
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class UpdateAgentStatusRequest(BaseModel):
+    status: str = Field(..., description="ACTIVE, SUSPENDED, or REVOKED")
+    reason: Optional[str] = Field(None, description="Reason for status change")
+
+class ToolExecutionRequest(BaseModel):
+    source_agent_id: str
+    tool_uri: str
+    parameters: Dict[str, Any] = Field(default_factory=dict)

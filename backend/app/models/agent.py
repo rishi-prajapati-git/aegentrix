@@ -27,3 +27,5 @@ class AgentModel(BaseModel):
     capabilities: AgentCapability = Field(default_factory=AgentCapability)
     explicitly_denied_resources: List[str] = Field(default_factory=list)
     status: str = Field(default="ACTIVE", description="ACTIVE, SUSPENDED, REVOKED")
+    revocation_reason: Optional[str] = Field(default=None, description="Reason if suspended or revoked")
+    status_updated_at: Optional[str] = Field(default=None, description="ISO timestamp of status update")

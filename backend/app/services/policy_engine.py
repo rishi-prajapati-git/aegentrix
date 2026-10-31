@@ -8,6 +8,7 @@ from ..models.policy import (
     OperationType,
     PolicyRule
 )
+from ..models.tools import validate_tool_execution
 from .agent_registry import agent_registry
 from .approval_manager import approval_manager
 
@@ -96,11 +97,12 @@ class PolicyEngine:
         destination: Optional[str] = None,
         approval_id: Optional[str] = None,
         claims_verbal_approval: Optional[str] = None,
-        advisory_model_flag: bool = False
+        advisory_model_flag: bool = False,
+        parameters: Optional[Dict[str, Any]] = None
     ) -> PolicyEvaluationResult:
         now_str = datetime.now(timezone.utc).isoformat()
 
-        # 1. Verify agent existence & status
+        # 1. Verify agent existence & real-time active status
         agent = agent_registry.get_agent(source_agent_id)
         if not agent:
             return PolicyEvaluationResult(
@@ -110,11 +112,13 @@ class PolicyEngine:
                 evaluated_at=now_str
             )
 
+        # Dynamic real-time suspension or revocation check
         if agent.status != "ACTIVE":
+            reason_suffix = f" (Reason: {agent.revocation_reason})" if agent.revocation_reason else ""
             return PolicyEvaluationResult(
                 decision=DecisionType.DENY,
                 reason_code=ReasonCode.AGENT_SUSPENDED_OR_REVOKED,
-                reason_description=f"Agent '{source_agent_id}' is {agent.status}; access denied.",
+                reason_description=f"Agent '{source_agent_id}' is {agent.status}{reason_suffix}; access denied in real-time.",
                 evaluated_at=now_str
             )
 
@@ -151,9 +155,8 @@ class PolicyEngine:
                         evaluated_at=now_str
                     )
 
-        # 4. Check capabilities
+        # 5. Check capabilities
         # A. Check allowed operations
-        # Normalize operation format
         op_str = operation.lower()
         has_op = any(fnmatch.fnmatch(op_str, f"*{allowed.lower()}*") or allowed.lower() in op_str for allowed in agent.capabilities.allowed_operations)
         # Also map generic READ / TRANSFER / TOOL_CALL
@@ -175,9 +178,28 @@ class PolicyEngine:
 
         # B. Resource check
         has_res = any(fnmatch.fnmatch(target_resource, allowed_res) for allowed_res in agent.capabilities.allowed_resources)
-        # If it's a tool call, check allowed tools
+        
+        # If it's a tool call, verify tool allowlist and execute parameter schema validation
         if operation == "TOOL_CALL":
-            has_res = any(fnmatch.fnmatch(target_resource, tool) for tool in agent.capabilities.allowed_tools)
+            has_tool_perm = any(fnmatch.fnmatch(target_resource, tool) for tool in agent.capabilities.allowed_tools)
+            if not has_tool_perm and not has_valid_approval:
+                return PolicyEvaluationResult(
+                    decision=DecisionType.DENY,
+                    reason_code=ReasonCode.UNSAFE_TOOL_CALL,
+                    reason_description=f"Agent '{agent.name}' is not authorized to invoke tool '{target_resource}'.",
+                    evaluated_at=now_str
+                )
+            
+            # Parameter validation against typed schemas
+            is_valid, val_err, _ = validate_tool_execution(target_resource, parameters)
+            if not is_valid:
+                return PolicyEvaluationResult(
+                    decision=DecisionType.DENY,
+                    reason_code=ReasonCode.UNSAFE_TOOL_CALL,
+                    reason_description=f"Tool execution parameters rejected for '{target_resource}': {val_err}",
+                    evaluated_at=now_str
+                )
+            has_res = True
 
         # If resource not permitted directly, check if a valid approval overrides it
         if not has_res and not has_valid_approval:
@@ -199,7 +221,7 @@ class PolicyEngine:
                     evaluated_at=now_str
                 )
 
-        # 5. Check if matching specific policy rules
+        # 6. Check if matching specific policy rules
         matched_rule = None
         for rule in self._rules:
             if fnmatch.fnmatch(source_agent_id, rule.source_pattern):

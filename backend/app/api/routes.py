@@ -1,9 +1,16 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional, Dict, Any
+import uuid
 
 from ..models.agent import AgentModel
 from ..models.policy import PolicyRule
-from ..models.requests import ScenarioInfo, ScenarioRunResponse, CreateApprovalRequest
+from ..models.requests import (
+    ScenarioInfo,
+    ScenarioRunResponse,
+    CreateApprovalRequest,
+    UpdateAgentStatusRequest,
+    ToolExecutionRequest
+)
 from ..models.approval import ApprovalRecord
 from ..models.audit import AuditEvent, Incident
 
@@ -12,6 +19,7 @@ from ..services.policy_engine import policy_engine
 from ..services.scenario_runner import scenario_runner
 from ..services.approval_manager import approval_manager
 from ..services.audit_store import audit_store
+from ..services.gateway import gateway
 from ..core.config import settings
 
 api_router = APIRouter()
@@ -30,6 +38,13 @@ def get_health():
 def get_agents():
     return agent_registry.list_agents()
 
+@api_router.patch("/api/agents/{agent_id:path}/status", response_model=AgentModel)
+def update_agent_status(agent_id: str, req: UpdateAgentStatusRequest):
+    success = agent_registry.update_agent_status(agent_id, req.status, req.reason)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found.")
+    return agent_registry.get_agent(agent_id)
+
 @api_router.get("/api/policies", response_model=List[PolicyRule])
 def get_policies():
     return policy_engine.list_policies()
@@ -46,6 +61,25 @@ def run_scenario(scenario_id: str, payload: Optional[Dict[str, Any]] = None):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scenario execution failed: {str(e)}")
+
+@api_router.post("/api/tools/execute")
+def execute_tool(req: ToolExecutionRequest):
+    wf_id = f"wf_tool_{uuid.uuid4().hex[:8]}"
+    corr_id = f"corr_tool_{uuid.uuid4().hex[:8]}"
+    res, event = gateway.execute_operation(
+        workflow_id=wf_id,
+        correlation_id=corr_id,
+        source_agent_id=req.source_agent_id,
+        operation="TOOL_CALL",
+        target_resource=req.tool_uri,
+        parameters=req.parameters
+    )
+    return {
+        "decision": res.decision.value,
+        "reason_code": res.reason_code.value,
+        "reason_description": res.reason_description,
+        "event_id": event.event_id
+    }
 
 @api_router.get("/api/events", response_model=List[AuditEvent])
 def get_events(

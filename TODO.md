@@ -30,8 +30,8 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] Enforce strict separation between **Read** access and **Transfer/Disclosure** access
 - [x] Implement strict rejection of natural-language verbal approval claims
 - [x] Build central Security Gateway mediating all operations (`backend/app/services/gateway.py`)
-- [ ] Add dynamic agent suspension/revocation check in real-time mid-workflow
-- [ ] Implement parameter validation schemas for allowlisted tool executions
+- [x] Add dynamic agent suspension/revocation check in real-time mid-workflow
+- [x] Implement parameter validation schemas for allowlisted tool executions
 
 ---
 

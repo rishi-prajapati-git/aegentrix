@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional
+from datetime import datetime, timezone
 from ..models.agent import AgentModel, AgentCapability
 
 class AgentRegistry:
@@ -74,10 +75,27 @@ class AgentRegistry:
     def list_agents(self) -> List[AgentModel]:
         return list(self._agents.values())
 
-    def update_agent_status(self, agent_id: str, status: str) -> bool:
+    def update_agent_status(self, agent_id: str, status: str, reason: Optional[str] = None) -> bool:
         if agent_id in self._agents:
-            self._agents[agent_id].status = status
+            agent = self._agents[agent_id]
+            agent.status = status.upper()
+            agent.revocation_reason = reason
+            agent.status_updated_at = datetime.now(timezone.utc).isoformat()
             return True
         return False
+
+    def suspend_agent(self, agent_id: str, reason: str = "Suspended mid-workflow") -> bool:
+        return self.update_agent_status(agent_id, "SUSPENDED", reason)
+
+    def revoke_agent(self, agent_id: str, reason: str = "Security revocation") -> bool:
+        return self.update_agent_status(agent_id, "REVOKED", reason)
+
+    def reactivate_agent(self, agent_id: str) -> bool:
+        return self.update_agent_status(agent_id, "ACTIVE", None)
+
+    def reset(self):
+        """Reset all agents back to default status and configurations."""
+        self._agents.clear()
+        self._initialize_default_agents()
 
 agent_registry = AgentRegistry()

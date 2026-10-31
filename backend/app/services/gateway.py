@@ -24,6 +24,7 @@ class SecurityGateway:
         claims_verbal_approval: Optional[str] = None,
         approval_id: Optional[str] = None,
         simulate_model_failure: bool = False,
+        parameters: Optional[Dict[str, Any]] = None,
         raw_metadata: Optional[Dict[str, Any]] = None
     ) -> tuple[PolicyEvaluationResult, AuditEvent]:
         
@@ -37,7 +38,7 @@ class SecurityGateway:
             )
             has_advisory_flag = bool(advisory_analysis.flags)
 
-        # 2. Authoritative Deterministic Policy Evaluation
+        # 2. Authoritative Deterministic Policy Evaluation (including dynamic suspension & parameter validation)
         eval_result = policy_engine.evaluate(
             source_agent_id=source_agent_id,
             operation=operation,
@@ -45,7 +46,8 @@ class SecurityGateway:
             destination=destination,
             approval_id=approval_id,
             claims_verbal_approval=claims_verbal_approval,
-            advisory_model_flag=has_advisory_flag
+            advisory_model_flag=has_advisory_flag,
+            parameters=parameters
         )
 
         # 3. Provenance tracking
@@ -54,6 +56,10 @@ class SecurityGateway:
             untrusted_input_origin=untrusted_origin,
             claims_approval_by=claims_verbal_approval
         )
+
+        meta = dict(raw_metadata or {})
+        if parameters:
+            meta["tool_parameters"] = parameters
 
         # 4. Record Structured Audit Event (secrets redacted)
         audit_event = audit_store.record_event(
@@ -68,7 +74,7 @@ class SecurityGateway:
             matched_policy_id=eval_result.matched_policy_id,
             provenance=provenance,
             advisory_model_analysis=advisory_analysis,
-            raw_metadata=raw_metadata
+            raw_metadata=meta
         )
 
         # 5. Check Temporal Risk Correlation
