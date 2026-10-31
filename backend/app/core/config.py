@@ -18,6 +18,10 @@ class Settings(BaseModel):
     # Database
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./backend/data/aegentrix.db")
 
+    # Approvals & Cryptography
+    approval_secret_key: str = os.getenv("APPROVAL_SECRET_KEY", "aegentrix-super-secret-hmac-key-2026")
+    default_policy_file: str = os.getenv("DEFAULT_POLICY_FILE", "./backend/app/data/policies.yaml")
+
     # Advisory AI Model Adapter
     ai_analysis_enabled: bool = os.getenv("AI_ANALYSIS_ENABLED", "false").lower() == "true"
     ai_model_provider: str = os.getenv("AI_MODEL_PROVIDER", "none")

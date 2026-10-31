@@ -1,16 +1,19 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 from typing import List, Optional, Dict, Any
 import uuid
 
 from ..models.agent import AgentModel
-from ..models.policy import PolicyRule
+from ..models.policy import PolicyRule, PolicyBundle
 from ..models.requests import (
     ScenarioInfo,
     ScenarioRunResponse,
     CreateApprovalRequest,
     UpdateAgentStatusRequest,
     UpdateIncidentStatusRequest,
-    ToolExecutionRequest
+    ToolExecutionRequest,
+    VerifyApprovalRequest,
+    VerifyApprovalResponse,
+    PolicyImportResponse
 )
 from ..models.approval import ApprovalRecord
 from ..models.audit import AuditEvent, Incident
@@ -49,6 +52,29 @@ def update_agent_status(agent_id: str, req: UpdateAgentStatusRequest):
 @api_router.get("/api/policies", response_model=List[PolicyRule])
 def get_policies():
     return policy_engine.list_policies()
+
+@api_router.get("/api/policies/export")
+def export_policies(format: str = Query("json", pattern="^(json|yaml)$")):
+    """
+    Exports currently active policy bundle formatted in JSON or YAML.
+    """
+    if format.lower() == "yaml":
+        yaml_content = policy_engine.export_to_yaml()
+        return Response(content=yaml_content, media_type="application/x-yaml")
+    return policy_engine.export_bundle()
+
+@api_router.post("/api/policies/import", response_model=PolicyImportResponse)
+def import_policies(bundle: PolicyBundle, overwrite: bool = Query(False)):
+    """
+    Imports a verified PolicyBundle containing structured PolicyRules.
+    If overwrite is True, replaces all existing active rules.
+    """
+    imported = policy_engine.import_bundle(bundle, overwrite=overwrite)
+    return PolicyImportResponse(
+        status="success",
+        imported_count=imported,
+        total_rules=len(policy_engine.list_policies())
+    )
 
 @api_router.get("/api/scenarios", response_model=List[ScenarioInfo])
 def get_scenarios():
@@ -136,3 +162,35 @@ def create_approval(req: CreateApprovalRequest):
 @api_router.get("/api/approvals", response_model=List[ApprovalRecord])
 def list_approvals():
     return approval_manager.list_approvals()
+
+@api_router.post("/api/approvals/verify", response_model=VerifyApprovalResponse)
+def verify_approval(req: VerifyApprovalRequest):
+    """
+    Verifies cryptographic signature integrity, status, expiration, and scope of an approval token.
+    """
+    valid, reason = approval_manager.validate_approval(
+        approval_id_or_token=req.approval_id_or_token,
+        agent_id=req.target_agent_id,
+        operation=req.operation,
+        resource=req.scope_resource,
+        destination=req.destination
+    )
+    # Check if signature was verified
+    sig_valid, record, _ = approval_manager.verify_token_integrity(req.approval_id_or_token)
+    return VerifyApprovalResponse(
+        valid=valid,
+        reason_code=reason,
+        description=f"Approval validation result: {reason}",
+        approval_id=record.approval_id if record else None,
+        signature_verified=sig_valid
+    )
+
+@api_router.post("/api/approvals/{approval_id}/revoke")
+def revoke_approval(approval_id: str):
+    """
+    Revokes an active approval record.
+    """
+    success = approval_manager.revoke_approval(approval_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Approval '{approval_id}' not found.")
+    return {"status": "revoked", "approval_id": approval_id}

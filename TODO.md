@@ -19,8 +19,8 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] Model server-side verifiable Approval records with actor, scope, and expiry (`backend/app/models/approval.py`)
 - [x] Model structured Audit Events, Incidents, and Provenance metadata (`backend/app/models/audit.py`)
 - [x] Implement recursive credential and secret sanitizer/redactor (`backend/app/core/security.py`)
-- [ ] Add policy export/import schemas (JSON/YAML file-based policy definitions)
-- [ ] Implement cryptographic HMAC/digital signatures for approval tokens
+- [x] Add policy export/import schemas (JSON/YAML file-based policy definitions)
+- [x] Implement cryptographic HMAC/digital signatures for approval tokens
 
 ---
 

@@ -1,12 +1,18 @@
-from datetime import datetime, timezone
+import os
+import json
+import yaml
 import fnmatch
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
+from pathlib import Path
+
 from ..models.policy import (
     PolicyEvaluationResult,
     DecisionType,
     ReasonCode,
     OperationType,
-    PolicyRule
+    PolicyRule,
+    PolicyBundle
 )
 from ..models.tools import validate_tool_execution
 from .agent_registry import agent_registry
@@ -61,7 +67,7 @@ class PolicyEngine:
                 destination_pattern="ext://*",
                 requires_verifiable_approval=True,
                 decision=DecisionType.REQUIRE_APPROVAL,
-                reason_code=ReasonCode.REQUIRE_APPROVAL if hasattr(ReasonCode, "REQUIRE_APPROVAL") else ReasonCode.APPROVAL_NOT_VERIFIED
+                reason_code=ReasonCode.APPROVAL_NOT_VERIFIED
             ),
             PolicyRule(
                 policy_id="POL-CORP-005",
@@ -87,7 +93,92 @@ class PolicyEngine:
         ]
 
     def list_policies(self) -> List[PolicyRule]:
-        return self._rules
+        return list(self._rules)
+
+    def get_policy(self, policy_id: str) -> Optional[PolicyRule]:
+        for r in self._rules:
+            if r.policy_id == policy_id:
+                return r
+        return None
+
+    # --- Policy Export / Import Capabilities (JSON / YAML) ---
+
+    def export_bundle(self, author: Optional[str] = "admin@aegentrix.local", description: Optional[str] = None) -> PolicyBundle:
+        """Exports currently active policy rules into a typed PolicyBundle."""
+        return PolicyBundle(
+            version="1.0",
+            exported_at=datetime.now(timezone.utc).isoformat(),
+            author=author or "admin@aegentrix.local",
+            description=description or f"AEGENTRIX active security rules export ({len(self._rules)} rules)",
+            rules=list(self._rules)
+        )
+
+    def export_to_json(self, indent: int = 2) -> str:
+        """Exports active policy rules as formatted JSON string."""
+        return self.export_bundle().to_json(indent=indent)
+
+    def export_to_yaml(self) -> str:
+        """Exports active policy rules as clean YAML string."""
+        return self.export_bundle().to_yaml()
+
+    def export_to_file(self, file_path: str) -> str:
+        """
+        Exports active policy bundle to a file (JSON or YAML determined by extension).
+        Creates parent directories automatically if needed.
+        """
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        ext = path.suffix.lower()
+        if ext in [".yaml", ".yml"]:
+            content = self.export_to_yaml()
+        else:
+            content = self.export_to_json()
+        path.write_text(content, encoding="utf-8")
+        return str(path)
+
+    def import_bundle(self, bundle: PolicyBundle, overwrite: bool = False) -> int:
+        """
+        Imports a PolicyBundle.
+        If overwrite is True, existing rules are replaced.
+        If overwrite is False, rules are merged/upserted by policy_id.
+        Returns the number of imported rules.
+        """
+        if overwrite:
+            self._rules = list(bundle.rules)
+            return len(bundle.rules)
+
+        # Merge / upsert by policy_id
+        existing_ids = {r.policy_id: idx for idx, r in enumerate(self._rules)}
+        imported_count = 0
+        for new_rule in bundle.rules:
+            if new_rule.policy_id in existing_ids:
+                self._rules[existing_ids[new_rule.policy_id]] = new_rule
+            else:
+                self._rules.append(new_rule)
+                existing_ids[new_rule.policy_id] = len(self._rules) - 1
+            imported_count += 1
+        return imported_count
+
+    def import_from_json(self, json_str: str, overwrite: bool = False) -> int:
+        """Imports policy definitions from a JSON string."""
+        bundle = PolicyBundle.from_json(json_str)
+        return self.import_bundle(bundle, overwrite=overwrite)
+
+    def import_from_yaml(self, yaml_str: str, overwrite: bool = False) -> int:
+        """Imports policy definitions from a YAML string."""
+        bundle = PolicyBundle.from_yaml(yaml_str)
+        return self.import_bundle(bundle, overwrite=overwrite)
+
+    def load_from_file(self, file_path: str, overwrite: bool = False) -> int:
+        """Loads and imports policies from a local JSON or YAML file."""
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Policy file not found: {file_path}")
+        content = path.read_text(encoding="utf-8")
+        ext = path.suffix.lower()
+        if ext in [".yaml", ".yml"]:
+            return self.import_from_yaml(content, overwrite=overwrite)
+        return self.import_from_json(content, overwrite=overwrite)
 
     def evaluate(
         self,
@@ -136,9 +227,13 @@ class PolicyEngine:
         if approval_id:
             valid, reason = approval_manager.validate_approval(approval_id, source_agent_id, operation, target_resource, destination)
             if not valid:
+                try:
+                    reason_enum = ReasonCode(reason)
+                except ValueError:
+                    reason_enum = ReasonCode.APPROVAL_NOT_VERIFIED
                 return PolicyEvaluationResult(
                     decision=DecisionType.DENY,
-                    reason_code=ReasonCode(reason) if reason in ReasonCode.__members__ else ReasonCode.APPROVAL_NOT_VERIFIED,
+                    reason_code=reason_enum,
                     reason_description=f"Supplied approval failed verification: {reason}",
                     evaluated_at=now_str
                 )
@@ -159,7 +254,6 @@ class PolicyEngine:
         # A. Check allowed operations
         op_str = operation.lower()
         has_op = any(fnmatch.fnmatch(op_str, f"*{allowed.lower()}*") or allowed.lower() in op_str for allowed in agent.capabilities.allowed_operations)
-        # Also map generic READ / TRANSFER / TOOL_CALL
         if not has_op:
             if operation == "READ" and any("read" in a.lower() for a in agent.capabilities.allowed_operations):
                 has_op = True
@@ -221,7 +315,7 @@ class PolicyEngine:
                     evaluated_at=now_str
                 )
 
-        # 6. Check if matching specific policy rules
+        # 6. Check matching specific policy rules
         matched_rule = None
         for rule in self._rules:
             if fnmatch.fnmatch(source_agent_id, rule.source_pattern):
@@ -244,15 +338,19 @@ class PolicyEngine:
             else:
                 valid, reason = approval_manager.validate_approval(approval_id, source_agent_id, operation, target_resource, destination)
                 if not valid:
+                    try:
+                        reason_enum = ReasonCode(reason)
+                    except ValueError:
+                        reason_enum = ReasonCode.APPROVAL_NOT_VERIFIED
                     return PolicyEvaluationResult(
                         decision=DecisionType.DENY,
-                        reason_code=ReasonCode(reason) if reason in ReasonCode.__members__ else ReasonCode.APPROVAL_NOT_VERIFIED,
+                        reason_code=reason_enum,
                         reason_description=f"Supplied approval failed verification: {reason}",
                         matched_policy_id=matched_rule.policy_id,
                         evaluated_at=now_str
                     )
 
-        # If everything verified, allow operation
+        # 7. Authorized by policy
         return PolicyEvaluationResult(
             decision=DecisionType.ALLOW,
             reason_code=ReasonCode.AUTHORIZED,

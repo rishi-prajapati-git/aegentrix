@@ -1,0 +1,71 @@
+version: '1.0'
+exported_at: '2026-10-31T00:00:00Z'
+author: secops@aegentrix.local
+description: Baseline Corporate Multi-Agent Governance Policies
+rules:
+- policy_id: POL-CORP-001
+  name: Research Agent Documentation Access
+  description: Allows Research Agent to read synthetic public and research documents
+  source_pattern: agent://research-*
+  operation: READ
+  resource_pattern: res://research/*
+  destination_pattern: null
+  required_trust_tier: null
+  requires_verifiable_approval: false
+  decision: ALLOW
+  reason_code: AUTHORIZED
+- policy_id: POL-CORP-002
+  name: Research Agent Inter-Agent Transfer
+  description: Allows Research Agent to transfer sanitized summaries to Communication Agent
+  source_pattern: agent://research-*
+  operation: TRANSFER
+  resource_pattern: res://research/*
+  destination_pattern: agent://communication-*
+  required_trust_tier: null
+  requires_verifiable_approval: false
+  decision: ALLOW
+  reason_code: AUTHORIZED
+- policy_id: POL-CORP-003
+  name: Finance Agent Restricted Ledger Access
+  description: Allows Finance Agent to read corporate financial summaries
+  source_pattern: agent://finance-*
+  operation: READ
+  resource_pattern: res://finance/*
+  destination_pattern: null
+  required_trust_tier: null
+  requires_verifiable_approval: false
+  decision: ALLOW
+  reason_code: AUTHORIZED
+- policy_id: POL-CORP-004
+  name: Restricted Finance External Transfer Gating
+  description: Strictly gates any external transfer of financial data requiring verifiable administrative approval
+  source_pattern: '*'
+  operation: TRANSFER
+  resource_pattern: res://finance/*
+  destination_pattern: ext://*
+  required_trust_tier: null
+  requires_verifiable_approval: true
+  decision: REQUIRE_APPROVAL
+  reason_code: APPROVAL_NOT_VERIFIED
+- policy_id: POL-CORP-005
+  name: Communication Agent Public Dispatches
+  description: Allows Communication Agent to dispatch approved public bulletins
+  source_pattern: agent://communication-*
+  operation: TRANSFER
+  resource_pattern: res://public/*
+  destination_pattern: ext://*
+  required_trust_tier: null
+  requires_verifiable_approval: false
+  decision: ALLOW
+  reason_code: AUTHORIZED
+- policy_id: POL-CORP-006
+  name: Operations Sandbox Health Diagnostics
+  description: Allows Operations Agent to run allowlisted diagnostic health check
+  source_pattern: agent://operations-*
+  operation: TOOL_CALL
+  resource_pattern: tool://sandbox_health_check
+  destination_pattern: null
+  required_trust_tier: null
+  requires_verifiable_approval: false
+  decision: ALLOW
+  reason_code: AUTHORIZED

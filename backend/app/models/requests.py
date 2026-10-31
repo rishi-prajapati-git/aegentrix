@@ -45,3 +45,22 @@ class ToolExecutionRequest(BaseModel):
     source_agent_id: str
     tool_uri: str
     parameters: Dict[str, Any] = Field(default_factory=dict)
+
+class VerifyApprovalRequest(BaseModel):
+    approval_id_or_token: str
+    target_agent_id: str
+    operation: str
+    scope_resource: str
+    destination: Optional[str] = None
+
+class VerifyApprovalResponse(BaseModel):
+    valid: bool
+    reason_code: str
+    description: str
+    approval_id: Optional[str] = None
+    signature_verified: bool = False
+
+class PolicyImportResponse(BaseModel):
+    status: str
+    imported_count: int
+    total_rules: int
