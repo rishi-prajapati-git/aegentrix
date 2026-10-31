@@ -9,6 +9,7 @@ from ..models.requests import (
     ScenarioRunResponse,
     CreateApprovalRequest,
     UpdateAgentStatusRequest,
+    UpdateIncidentStatusRequest,
     ToolExecutionRequest
 )
 from ..models.approval import ApprovalRecord
@@ -93,6 +94,28 @@ def get_events(
 @api_router.get("/api/incidents", response_model=List[Incident])
 def get_incidents(limit: int = Query(20, le=100)):
     return audit_store.get_incidents(limit=limit)
+
+@api_router.get("/api/incidents/{incident_id}", response_model=Incident)
+def get_incident(incident_id: str):
+    inc = audit_store.get_incident(incident_id)
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+    return inc
+
+@api_router.patch("/api/incidents/{incident_id}/status", response_model=Incident)
+def update_incident_status(incident_id: str, req: UpdateIncidentStatusRequest):
+    try:
+        updated = audit_store.update_incident_status(
+            incident_id=incident_id,
+            status=req.status,
+            actor=req.actor,
+            notes=req.notes
+        )
+        if not updated:
+            raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+        return updated
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @api_router.get("/api/metrics")
 def get_metrics():

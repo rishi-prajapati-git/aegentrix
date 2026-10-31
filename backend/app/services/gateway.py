@@ -25,6 +25,7 @@ class SecurityGateway:
         approval_id: Optional[str] = None,
         simulate_model_failure: bool = False,
         parameters: Optional[Dict[str, Any]] = None,
+        payload_size_bytes: int = 0,
         raw_metadata: Optional[Dict[str, Any]] = None
     ) -> tuple[PolicyEvaluationResult, AuditEvent]:
         
@@ -61,6 +62,12 @@ class SecurityGateway:
         if parameters:
             meta["tool_parameters"] = parameters
 
+        effective_bytes = payload_size_bytes
+        if effective_bytes == 0 and untrusted_content:
+            effective_bytes = len(untrusted_content.encode("utf-8"))
+        if effective_bytes == 0 and raw_metadata:
+            effective_bytes = int(raw_metadata.get("payload_size_bytes") or raw_metadata.get("bytes_transferred") or 0)
+
         # 4. Record Structured Audit Event (secrets redacted)
         audit_event = audit_store.record_event(
             workflow_id=workflow_id,
@@ -72,12 +79,13 @@ class SecurityGateway:
             reason_code=eval_result.reason_code.value,
             reason_description=eval_result.reason_description,
             matched_policy_id=eval_result.matched_policy_id,
+            payload_size_bytes=effective_bytes,
             provenance=provenance,
             advisory_model_analysis=advisory_analysis,
             raw_metadata=meta
         )
 
-        # 5. Check Temporal Risk Correlation
+        # 5. Check Temporal Risk Correlation (evaluated within sliding window)
         temporal_analyzer.analyze_event_sequence(workflow_id)
 
         return eval_result, audit_event

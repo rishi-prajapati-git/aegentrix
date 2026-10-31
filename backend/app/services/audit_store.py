@@ -20,6 +20,7 @@ class AuditStore:
         reason_code: str,
         reason_description: str,
         matched_policy_id: Optional[str] = None,
+        payload_size_bytes: int = 0,
         provenance: Optional[Any] = None,
         advisory_model_analysis: Optional[Any] = None,
         raw_metadata: Optional[Dict[str, Any]] = None
@@ -27,6 +28,10 @@ class AuditStore:
         event_id = f"evt_{uuid.uuid4().hex[:12]}"
         now_str = datetime.now(timezone.utc).isoformat()
         sanitized_meta = sanitize_payload(raw_metadata or {})
+
+        size_bytes = payload_size_bytes
+        if size_bytes == 0 and raw_metadata:
+            size_bytes = int(raw_metadata.get("payload_size_bytes") or raw_metadata.get("bytes_transferred") or raw_metadata.get("size_bytes") or 0)
 
         event = AuditEvent(
             event_id=event_id,
@@ -36,6 +41,8 @@ class AuditStore:
             source_agent_id=source_agent_id,
             operation=operation,
             target_resource_or_recipient=target_resource_or_recipient,
+            payload_classification="CONFIDENTIAL",
+            payload_size_bytes=size_bytes,
             decision=decision,
             reason_code=reason_code,
             reason_description=reason_description,
@@ -72,6 +79,35 @@ class AuditStore:
         )
         self._incidents.append(incident)
         return incident
+
+    def get_incident(self, incident_id: str) -> Optional[Incident]:
+        for inc in self._incidents:
+            if inc.incident_id == incident_id:
+                return inc
+        return None
+
+    def update_incident_status(
+        self,
+        incident_id: str,
+        status: str,
+        actor: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> Optional[Incident]:
+        valid_statuses = {"OPEN", "CONTAINED", "RESOLVED", "DISMISSED"}
+        status_clean = status.upper().strip()
+        if status_clean not in valid_statuses:
+            raise ValueError(f"Invalid incident status '{status}'. Must be one of {valid_statuses}")
+
+        for inc in self._incidents:
+            if inc.incident_id == incident_id:
+                inc.status = status_clean
+                inc.updated_at = datetime.now(timezone.utc).isoformat()
+                if actor:
+                    inc.resolved_by = actor
+                if notes:
+                    inc.resolution_notes = notes
+                return inc
+        return None
 
     def get_events(
         self,

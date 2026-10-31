@@ -24,6 +24,7 @@ class AuditEvent(BaseModel):
     operation: str
     target_resource_or_recipient: str
     payload_classification: str = "CONFIDENTIAL"
+    payload_size_bytes: int = 0
     decision: str
     reason_code: str
     reason_description: str
@@ -41,4 +42,7 @@ class Incident(BaseModel):
     workflow_id: str
     correlated_event_ids: List[str]
     affected_agents: List[str]
-    status: str = "OPEN" # OPEN, CONTAINED, DISMISSED
+    status: str = "OPEN" # OPEN, CONTAINED, RESOLVED, DISMISSED
+    updated_at: Optional[str] = None
+    resolved_by: Optional[str] = None
+    resolution_notes: Optional[str] = None

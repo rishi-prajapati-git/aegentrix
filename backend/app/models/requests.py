@@ -36,6 +36,11 @@ class UpdateAgentStatusRequest(BaseModel):
     status: str = Field(..., description="ACTIVE, SUSPENDED, or REVOKED")
     reason: Optional[str] = Field(None, description="Reason for status change")
 
+class UpdateIncidentStatusRequest(BaseModel):
+    status: str = Field(..., description="OPEN, CONTAINED, RESOLVED, or DISMISSED")
+    actor: Optional[str] = Field(None, description="Security analyst or system component updating status")
+    notes: Optional[str] = Field(None, description="Investigation details or mitigation rationale")
+
 class ToolExecutionRequest(BaseModel):
     source_agent_id: str
     tool_uri: str

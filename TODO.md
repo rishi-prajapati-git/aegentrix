@@ -49,9 +49,9 @@ This document tracks the end-to-end implementation status of the **AEGENTRIX** m
 - [x] Implement multi-step attack correlation rule (`RULE_MULTI_STEP_EXFILTRATION_CHAIN`)
 - [x] Implement threshold detection for repeated consecutive denials (`RULE_REPEATED_ACCESS_PROBING`)
 - [x] Generate structured `Incident` records linked to correlated event IDs
-- [ ] Implement sliding time-window cleanup for expired temporal correlation state
-- [ ] Add cumulative byte-size data exfiltration threshold rule (e.g., detecting multiple small reads)
-- [ ] Add an incident status update mechanism (`OPEN` → `CONTAINED` → `RESOLVED`)
+- [x] Implement sliding time-window cleanup for expired temporal correlation state
+- [x] Add cumulative byte-size data exfiltration threshold rule (e.g., detecting multiple small reads)
+- [x] Add an incident status update mechanism (`OPEN` → `CONTAINED` → `RESOLVED`)
 
 ---
 
