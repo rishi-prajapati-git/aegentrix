@@ -43,11 +43,14 @@ def get_agents():
     return agent_registry.list_agents()
 
 @api_router.patch("/api/agents/{agent_id:path}/status", response_model=AgentModel)
+@api_router.post("/api/agents/{agent_id:path}/status", response_model=AgentModel)
 def update_agent_status(agent_id: str, req: UpdateAgentStatusRequest):
-    success = agent_registry.update_agent_status(agent_id, req.status, req.reason)
+    import urllib.parse
+    clean_id = urllib.parse.unquote(agent_id)
+    success = agent_registry.update_agent_status(clean_id, req.status, req.reason)
     if not success:
         raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found.")
-    return agent_registry.get_agent(agent_id)
+    return agent_registry.get_agent(clean_id) or agent_registry.get_agent(agent_id)
 
 @api_router.get("/api/policies", response_model=List[PolicyRule])
 def get_policies():

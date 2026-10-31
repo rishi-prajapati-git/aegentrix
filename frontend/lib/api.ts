@@ -106,11 +106,18 @@ export async function fetchAgents(): Promise<AgentModel[]> {
 }
 
 export async function updateAgentStatus(agentId: string, status: string, reason?: string): Promise<any> {
-  const res = await fetch(`${BASE_URL}/api/agents/${encodeURIComponent(agentId)}/status`, {
-    method: "POST",
+  let res = await fetch(`${BASE_URL}/api/agents/${encodeURIComponent(agentId)}/status`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status, reason }),
   });
+  if (!res.ok) {
+    res = await fetch(`${BASE_URL}/api/agents/${encodeURIComponent(agentId)}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, reason }),
+    });
+  }
   if (!res.ok) throw new Error("Failed to update agent status");
   return res.json();
 }
